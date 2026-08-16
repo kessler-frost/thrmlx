@@ -3,18 +3,21 @@
 [![CI](https://github.com/kessler-frost/thrmlx/actions/workflows/ci.yml/badge.svg)](https://github.com/kessler-frost/thrmlx/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-`thrmlx` is a small, MLX-native Python library for fast local Ising-model sampling. It provides
-dense pairwise models, deterministic graph coloring, compiled batched block-Gibbs chains, explicit
-random keys, and optional clamping without exposing JAX graph/program machinery.
+thrmlx is a source-derived [THRML](https://github.com/extropic-ai/thrml) port with an MLX backend
+for fast local Apple-Silicon execution. The target is THRML's model-building, block-Gibbs sampling,
+observation, and contrastive-learning use cases, implemented with MLX instead of THRML's JAX/Equinox
+backend.
 
 > [!IMPORTANT]
-> `thrmlx` is an independent, unofficial project. It is not affiliated with, sponsored by, or
-> endorsed by Extropic. THRML is referenced only as a behavioral and conceptual influence.
+> thrmlx is an independent, unofficial, source-derived port. It is not affiliated with, sponsored
+> by, or endorsed by Extropic.
 
-Version 0.1 targets correctness and a clean local-Mac interface. Exact enumeration and fixed-key
-statistical tests are release gates; benchmark results are measurements, not promises.
+The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. This
+initial state has **0 / 60 translated objectives green**, so it is not yet full THRML parity. The
+first shipping adapter remains dense Ising sampling while the node, factor, observer, and training
+surfaces are ported in ledger order. See [UPSTREAM.md](UPSTREAM.md).
 
-## Measured Apple-Silicon baseline
+## Preliminary Ising-only Apple-Silicon baseline
 
 On 2026-08-16, the primary two-block dense RBM workload ran on a Mac mini with Apple M4 Pro and
 48 GB memory (macOS 26.5.2, Python 3.12.12). The request uses 128 visible + 128 latent spins,
@@ -27,10 +30,13 @@ warm repetitions. The full machine, package, workload, and raw-timing provenance
 | `thrmlx` 0.1.0 / MLX 0.32.0 | Metal GPU | 80.1 ms | 8.94 ms | 3,664,966 |
 | THRML 0.1.4 / JAX 0.11.0 | JAX CPU | 1.30 s | 532.8 ms | 61,504 |
 
-For this specific, sufficiently batched local workload, `thrmlx` records states about 59.6× faster.
-This is not a same-accelerator framework comparison: MLX uses Metal while the [official JAX macOS
-installation path](https://docs.jax.dev/en/latest/installation.html) is CPU. Small workloads can be
-overhead-bound and need not show the same relationship.
+For this specific, sufficiently batched local workload, thrmlx records states about 59.6× faster.
+This is an **Ising-only preliminary result**, not a claim about every THRML use case. It is not a
+same-accelerator framework comparison: MLX uses Metal while the [official JAX macOS installation
+path](https://docs.jax.dev/en/latest/installation.html) is CPU. A JIT-enabled THRML/JAX-Metal smoke
+program is currently incompatible on this Mac, so no JAX-Metal throughput row is published. Each
+upstream objective will receive a paired benchmark only after its translated compatibility test is
+green.
 
 ## Quick start
 
@@ -154,11 +160,13 @@ does not turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 
-Version 0.1 deliberately uses dense coupling matrices. It does not include generic factors,
-categorical variables, sparse storage, annealing, differentiation through discrete samples, a
-THRML compatibility facade, or training APIs. The next candidate milestone is sampled moments and
-contrastive KL-gradient estimation after the sampler contract and local benchmark baseline settle.
+The current compatibility work proceeds through node/block-state management, generic block
+sampling, discrete factors and observers, then Ising learning and the MNIST fixture. The benchmark
+matrix will cover the corresponding THRML workloads: line/grid Ising, bipartite RBM, categorical
+factors, mixed grids, clamped positive phase, moment observers, contrastive gradients, and the
+MNIST fixture. Results will identify the exact green upstream objectives they exercise.
 
 ## License and provenance
 
-Apache-2.0. See [`LICENSE`](LICENSE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+Apache-2.0. See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
+[UPSTREAM.md](UPSTREAM.md).
