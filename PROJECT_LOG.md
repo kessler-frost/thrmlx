@@ -64,3 +64,13 @@
 - Added generic_block_sampling.py as a non-Ising THRML-style example. It is intentionally a
   correctness example rather than a fabricated framework-performance result; factor and observer
   ports are the next benchmark-eligible surface.
+
+## 2026-08-16 — THRML factor and interaction contracts
+
+- Ported abstract and weighted factors, factor-backed sampling-program lowering, and strict
+  directed-interaction validation to MLX. A FactorSamplingProgram now composes factor-generated
+  interactions with explicit interactions before static generic-program lowering.
+- Translated and passed the five upstream factor objectives and three interaction objectives.
+  Compatibility now stands at 28 green / 32 planned objectives.
+- Added factor_sampling.py, a THRML-style weighted pair-factor program whose recorded MLX trace
+  is exercised in Apple Silicon CI. Discrete spin/categorical EBM factors are next.

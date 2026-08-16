@@ -13,10 +13,10 @@ backend.
 > by, or endorsed by Extropic.
 
 The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. The
-block-state and generic sampling foundations have **20 / 60 translated objectives green**, so this
-is not yet full THRML parity. The current Ising adapter and newly compatible THRML-style
-node/block/program layers are followed by factors, observers, and training in ledger order. See
-[UPSTREAM.md](UPSTREAM.md).
+block-state, generic sampling, factor, and interaction foundations have **28 / 60 translated
+objectives green**, so this is not yet full THRML parity. The current Ising adapter and newly
+compatible THRML-style node/block/program/factor layers are followed by discrete EBMs, observers,
+and training in ledger order. See [UPSTREAM.md](UPSTREAM.md).
 
 ## Preliminary Ising-only Apple-Silicon baseline
 
@@ -49,6 +49,7 @@ cd thrmlx
 uv sync --frozen --group dev
 uv run --frozen --group dev python examples/two_spin.py
 uv run --frozen --group dev python examples/generic_block_sampling.py
+uv run --frozen --group dev python examples/factor_sampling.py
 ```
 
 Undo the project-local setup with:
