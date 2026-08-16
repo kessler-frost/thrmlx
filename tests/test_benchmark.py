@@ -6,7 +6,7 @@ import mlx.core as mx
 import pytest
 
 from benchmarks import dense_sampling
-from benchmarks.contract import BenchmarkConfig, expanded_couplings, workload
+from benchmarks.contract import BenchmarkConfig, expanded_couplings, measure, workload
 
 
 def test_dense_benchmark_reports_installed_mlx_version(
@@ -67,3 +67,67 @@ def test_thrml_runner_materializes_one_complete_boolean_trace() -> None:
 
     assert trace.shape == (8, 3, 5)
     assert str(trace.dtype) == "bool"
+
+
+def test_measure_keeps_cold_and_warm_timings_separate() -> None:
+    calls: list[object] = []
+    events: list[str] = []
+    ticks = iter([10.0, 15.0, 20.0, 21.0, 30.0, 33.0])
+
+    def make_runner() -> object:
+        calls.append("factory")
+        events.append("factory")
+
+        def run(seed: int) -> None:
+            calls.append(seed)
+            events.append(f"run:{seed}")
+
+        return run
+
+    def clock() -> float:
+        events.append("clock")
+        return next(ticks)
+
+    timing = measure(
+        make_runner,
+        cold_seed=0,
+        warmup_seed=1,
+        warm_seeds=(2, 3),
+        clock=clock,
+    )
+
+    assert calls == ["factory", 0, "factory", 1, 2, 3]
+    assert events == [
+        "clock",
+        "factory",
+        "run:0",
+        "clock",
+        "factory",
+        "run:1",
+        "clock",
+        "run:2",
+        "clock",
+        "clock",
+        "run:3",
+        "clock",
+    ]
+    assert timing.cold_elapsed_seconds == 5.0
+    assert timing.warm_elapsed_seconds == (1.0, 3.0)
+    assert timing.warm_median_elapsed_seconds == 2.0
+
+
+def test_smoke_report_names_both_adapters_and_their_execution_devices(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    pytest.importorskip("thrml")
+    run_module = import_module("benchmarks.run")
+
+    run_module.main(["--smoke"])
+
+    report = json.loads(capsys.readouterr().out)
+    assert report["schema_version"] == 1
+    assert set(report["adapters"]) == {"thrmlx", "thrml"}
+    assert report["adapters"]["thrmlx"]["device"] == "gpu"
+    assert report["adapters"]["thrml"]["device"] == "cpu"
+    assert report["adapters"]["thrmlx"]["timing"]["warm_elapsed_seconds"]
+    assert report["adapters"]["thrml"]["timing"]["warm_elapsed_seconds"]

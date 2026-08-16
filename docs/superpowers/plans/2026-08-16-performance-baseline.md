@@ -264,10 +264,10 @@ git commit -m "feat: add MLX and THRML benchmark runners"
 - Produces `Timing`, `AdapterResult`, `BenchmarkResult`, and `measure(make_runner, seeds, clock)`.
 - `measure` creates a fresh runner for cold timing, then a fresh runner for a single unmeasured warm
   request followed by seven fully materialized measured invocations.
-- `python benchmarks/run.py` emits one JSON object to stdout. It accepts `--output PATH` to also
+- `python -m benchmarks.run` emits one JSON object to stdout. It accepts `--output PATH` to also
   write byte-identical formatted JSON via `Path.write_text`.
 
-- [ ] **Step 1: Write failing timing and JSON-schema tests**
+- [x] **Step 1: Write failing timing and JSON-schema tests**
 
 ```python
 def test_measure_keeps_cold_and_warm_timings_separate() -> None:
@@ -295,13 +295,13 @@ def test_json_report_contains_provenance_and_two_named_adapters(capsys: pytest.C
     assert report["comparison_note"]
 ```
 
-- [ ] **Step 2: Run the tests and verify red**
+- [x] **Step 2: Run the tests and verify red**
 
 Run: `uv run --group benchmark pytest tests/test_benchmark.py -q`
 
 Expected: FAIL with missing `measure`/ `run_main` imports.
 
-- [ ] **Step 3: Implement timing and provenance serialization**
+- [x] **Step 3: Implement timing and provenance serialization**
 
 Use `statistics.median`, `time.perf_counter`, `platform.platform`, `platform.processor`,
 `sys.version`, `importlib.metadata.version`, and JAX/MLX device APIs. Use seed `0` for cold, seed
@@ -310,19 +310,19 @@ values to built-in JSON scalar/list/dict values before `json.dumps(..., indent=2
 The normal CLI runs the primary config; `--smoke` replaces only workload/config cardinalities for
 the test suite. `--output` is optional and uses `Path`.
 
-- [ ] **Step 4: Run tests and one explicit smoke report**
+- [x] **Step 4: Run tests and one explicit smoke report**
 
 Run:
 
 ```bash
 uv run --group benchmark pytest tests/test_benchmark.py -q
-uv run --group benchmark python benchmarks/run.py --smoke
+uv run --group benchmark python -m benchmarks.run --smoke
 ```
 
 Expected: PASS; output has named cold and warm values for both adapters and states JAX device
 `cpu` on the baseline Mac.
 
-- [ ] **Step 5: Commit the timing CLI**
+- [x] **Step 5: Commit the timing CLI**
 
 ```bash
 git add benchmarks/contract.py benchmarks/run.py tests/test_benchmark.py
@@ -349,7 +349,7 @@ Run:
 
 ```bash
 mkdir -p benchmarks/results
-uv run --group benchmark python benchmarks/run.py \
+uv run --group benchmark python -m benchmarks.run \
   --output benchmarks/results/2026-08-16-m4-pro.json
 ```
 
@@ -367,7 +367,7 @@ recorded states/s`. Link to the exact JSON data. Document:
 
 ```bash
 uv sync --frozen --group benchmark
-uv run --group benchmark python benchmarks/run.py \
+uv run --group benchmark python -m benchmarks.run \
   --output benchmarks/results/local.json
 python3 scripts/teardown.py
 ```
