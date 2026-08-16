@@ -19,26 +19,30 @@ gradients, the quick-start example, and a compact MNIST-shaped end-to-end fixtur
 source compatibility, not JAX/Equinox transformation or random-bitstream compatibility; see
 [UPSTREAM.md](UPSTREAM.md).
 
-## Preliminary Ising-only Apple-Silicon baseline
+## Apple-Silicon THRML source-use-case matrix
 
-On 2026-08-16, the primary two-block dense RBM workload ran on a Mac mini with Apple M4 Pro and
-48 GB memory (macOS 26.5.2, Python 3.12.12). The request uses 128 visible + 128 latent spins,
-16,384 bipartite edges, 1,024 chains, 20 warmup sweeps, 32 recorded states per chain, and seven
-warm repetitions. The full machine, package, workload, and raw-timing provenance is committed in
-[the result JSON](benchmarks/results/2026-08-16-m4-pro.json).
+Measured 2026-08-16 on an Apple M4 Pro / 48 GB Mac mini (macOS 26.5.2, Python 3.12.12), using
+MLX 0.32.0 on Metal and source-pinned THRML 0.1.4 at
+`9c4e6fbb800f5e5c627122e668ff1b158ef3782b` through JAX 0.11.0 CPU. Each row is a matched,
+materialized source-style workload with five warm repetitions; raw samples, devices, and linked
+upstream objectives are committed in [the result JSON](benchmarks/results/2026-08-16-m4-pro-source-matrix.json).
 
-| Adapter | Device | Cold time to first result | Warm median time | Warm recorded states/s |
-| --- | --- | ---: | ---: | ---: |
-| `thrmlx` 0.1.0 / MLX 0.32.0 | Metal GPU | 80.1 ms | 8.94 ms | 3,664,966 |
-| THRML 0.1.4 / JAX 0.11.0 | JAX CPU | 1.30 s | 532.8 ms | 61,504 |
+| THRML use case | thrmlx / MLX Metal warm median | THRML / JAX CPU warm median | Speedup |
+| --- | ---: | ---: | ---: |
+| Batched bipartite Ising / RBM | 8.27 ms | 492.31 ms | 59.5× |
+| Sparse line Ising sampling | 52.65 ms | 239.59 ms | 4.6× |
+| Checkerboard grid Ising sampling | 51.76 ms | 254.63 ms | 4.9× |
+| Low-level spin-factor Gibbs program | 53.63 ms | 249.40 ms | 4.7× |
+| Categorical factor Gibbs program | 86.93 ms | 332.35 ms | 3.8× |
+| Mixed spin/categorical factor program | 50.93 ms | 301.49 ms | 5.9× |
+| Ising moment observer | 65.95 ms | 227.28 ms | 3.4× |
+| Semi-visible contrastive gradient | 130.58 ms | 547.79 ms | 4.2× |
+| MNIST-shaped contrastive update | 94.39 ms | 420.46 ms | 4.5× |
 
-For this specific, sufficiently batched local workload, thrmlx records states about 59.6× faster.
-This is an **Ising-only preliminary result**, not a claim about every THRML use case. It is not a
-same-accelerator framework comparison: MLX uses Metal while the [official JAX macOS installation
-path](https://docs.jax.dev/en/latest/installation.html) is CPU. A JIT-enabled THRML/JAX-Metal smoke
-program is currently incompatible on this Mac, so no JAX-Metal throughput row is published. Each
-upstream objective will receive a paired benchmark only after its translated compatibility test is
-green.
+This is a local Apple-Silicon outcome, not a same-accelerator framework comparison: MLX uses Metal
+while this upstream THRML installation runs through JAX CPU. A JIT-enabled THRML/JAX-Metal smoke
+program remains incompatible on this Mac, so no JAX-Metal throughput claim is published. The matrix
+is deliberately source-use-case-specific, not a general GPU or cloud-price comparison.
 
 ## Quick start
 
@@ -188,14 +192,14 @@ Reproduce the paired local benchmark with its optional, pinned THRML/JAX depende
 
 ```bash
 uv sync --frozen --group benchmark
-uv run --frozen --group benchmark python -m benchmarks.run \
-  --output benchmarks/results/local.json
+uv run --frozen --group benchmark python -m benchmarks.source_matrix \
+  --output benchmarks/results/local-source-matrix.json
 python3 scripts/teardown.py
 ```
 
-It emits JSON containing hardware/software provenance, the complete workload/schedule, cold time
-to first result, seven materialized warm timings, and separate MLX/THRML devices. It intentionally
-does not turn a failed adapter into a partial comparison.
+It emits JSON containing hardware/software provenance, cold time to first result, five materialized
+warm timings, source-objective links, and separate MLX/THRML devices. It intentionally does not
+turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 

@@ -60,13 +60,13 @@ def _split_states(states: Sequence[State], n_spin: int) -> tuple[list[mx.array],
     spin_states = list(states[:n_spin])
     categorical_states = list(states[n_spin:])
     if any(
-        not isinstance(state, mx.array) or state.ndim != 2 or state.dtype != mx.bool_
+        not isinstance(state, mx.array) or state.ndim < 2 or state.dtype != mx.bool_
         for state in spin_states
     ):
         raise RuntimeError("Spin states must be scalar bool.")
     if any(
         not isinstance(state, mx.array)
-        or state.ndim != 2
+        or state.ndim < 2
         or not mx.issubdtype(state.dtype, mx.unsignedinteger)
         for state in categorical_states
     ):

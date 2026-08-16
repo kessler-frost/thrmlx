@@ -1,5 +1,21 @@
 # Project log
 
+## 2026-08-16 — Complete source-use-case matrix and batched MLX execution
+
+- Added a reproducible nine-row source-use-case matrix covering the completed computational THRML
+  surface: dense RBMs, line/grid Ising models, spin/categorical/mixed factor programs, moment
+  observers, semi-visible contrastive gradients, and the MNIST-shaped fixture update. Every row
+  records the mapped green source objectives, full hardware/software provenance, materialized cold
+  timing, and five warm timings in
+  `benchmarks/results/2026-08-16-m4-pro-source-matrix.json`.
+- On the Apple M4 Pro / 48 GB development Mac, MLX Metal was 3.4×–59.5× faster than the pinned
+  upstream THRML/JAX CPU adapter across those matched local workloads. This remains explicitly a
+  Metal-versus-CPU result, not a same-accelerator or cloud-pricing claim.
+- Removed Python-side per-chain traversal from contrastive gradients. Generic block sampling now
+  preserves leading batch axes through factor interactions and observers, so positive/negative
+  phases and the MNIST-shaped update execute as native MLX batches. Regression tests cover batched
+  spin conditionals and batched moment accumulation.
+
 ## 2026-08-16 — Observer, Ising, and fixture parity
 
 - Ported observers and the source-style Ising API: `StateObserver`, mixed-value moment

@@ -21,7 +21,7 @@ from thrmlx.block_management import (
 from thrmlx.conditional_samplers import AbstractConditionalSampler
 from thrmlx.interaction import Interaction, InteractionGroup
 from thrmlx.observers import AbstractObserver, StateObserver
-from thrmlx.pgm import DEFAULT_NODE_SHAPE_DTYPES, AbstractNode
+from thrmlx.pgm import DEFAULT_NODE_SHAPE_DTYPES, AbstractNode, ArraySpec
 from thrmlx.schedule import SamplingSchedule
 
 
@@ -81,6 +81,43 @@ def _slice_interaction(interaction: Interaction, indices: mx.array) -> Interacti
     if is_dataclass(interaction) and not isinstance(interaction, type):
         values = {
             field.name: _slice_interaction(getattr(interaction, field.name), indices)
+            for field in fields(interaction)
+        }
+        return type(interaction)(**values)
+    raise TypeError(
+        "interaction must be an MLX array, static scalar, tuple, dictionary, or dataclass"
+    )
+
+
+def _state_batch_shape(state_spec: StateSpec, state: State) -> tuple[int, ...]:
+    if isinstance(state_spec, ArraySpec):
+        if not isinstance(state, mx.array):
+            raise TypeError("array state templates require MLX array states")
+        return state.shape[: state.ndim - len(state_spec.shape) - 1]
+    if isinstance(state_spec, tuple):
+        if not isinstance(state, tuple) or not state_spec:
+            raise TypeError("tuple state does not match its template")
+        return _state_batch_shape(state_spec[0], state[0])
+    if not isinstance(state, dict) or not state_spec:
+        raise TypeError("dictionary state does not match its template")
+    first_key = next(iter(state_spec))
+    return _state_batch_shape(state_spec[first_key], state[first_key])
+
+
+def _broadcast_interaction(interaction: Interaction, batch_shape: tuple[int, ...]) -> Interaction:
+    if isinstance(interaction, mx.array):
+        return mx.broadcast_to(interaction, (*batch_shape, *interaction.shape))
+    if isinstance(interaction, (bool, float, int)):
+        return interaction
+    if isinstance(interaction, tuple):
+        return tuple(_broadcast_interaction(value, batch_shape) for value in interaction)
+    if isinstance(interaction, dict):
+        return {
+            key: _broadcast_interaction(value, batch_shape) for key, value in interaction.items()
+        }
+    if is_dataclass(interaction) and not isinstance(interaction, type):
+        values = {
+            field.name: _broadcast_interaction(getattr(interaction, field.name), batch_shape)
             for field in fields(interaction)
         }
         return type(interaction)(**values)
@@ -190,10 +227,19 @@ def _sample_single_block(
     ]
     free_block = program.gibbs_spec.free_blocks[block]
     sampler = program.samplers[block]
+    batch_shape = _state_batch_shape(
+        program.gibbs_spec.node_shape_dtypes[free_block.node_type], state_free[block]
+    )
     return sampler.sample(
         key,
-        [compiled.interaction for compiled in compiled_interactions],
-        [compiled.active for compiled in compiled_interactions],
+        [
+            _broadcast_interaction(compiled.interaction, batch_shape)
+            for compiled in compiled_interactions
+        ],
+        [
+            mx.broadcast_to(compiled.active, (*batch_shape, *compiled.active.shape))
+            for compiled in compiled_interactions
+        ],
         interaction_states,
         sampler_state,
         program.gibbs_spec.node_shape_dtypes[free_block.node_type],

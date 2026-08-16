@@ -301,6 +301,28 @@ def test_upstream_testblocksample_binary_bias() -> None:
     assert sampled.tolist() == [True, False, True]
 
 
+def test_batched_spin_conditionals_preserve_leading_chain_axes() -> None:
+    """Catch MLX conditional updates that only work after Python-side chain unbatching."""
+
+    block = _spin_block(2)
+    program = FactorSamplingProgram(
+        BlockGibbsSpec([block], []),
+        [SpinGibbsConditional()],
+        [SpinEBMFactor([block], mx.array([100.0, -100.0], dtype=mx.float32))],
+    )
+    trace = sample_states(
+        mx.random.key(342),
+        program,
+        SamplingSchedule(warmup=1, samples=3, sweeps_per_sample=1),
+        [mx.zeros((4, 2), dtype=mx.bool_)],
+        [],
+        [block],
+    )[0]
+
+    assert trace.shape == (3, 4, 2)
+    assert trace.tolist() == [[[True, False]] * 4] * 3
+
+
 def test_upstream_testblocksample_categorical_bias() -> None:
     """Catch a categorical bias conditional that samples the wrong category axis."""
 

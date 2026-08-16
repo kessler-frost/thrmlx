@@ -139,13 +139,16 @@ class MomentAccumulatorObserver(AbstractObserver):
             raise TypeError("moment transforms must return MLX arrays")
         arrays = [state for state in transformed_state if isinstance(state, mx.array)]
         dtype = mx.result_type(*(array.dtype for array in arrays))
-        flat_state = mx.zeros((len(self.flat_nodes),), dtype=dtype)
+        batch_shape = arrays[0].shape[:-1]
+        if any(array.shape[:-1] != batch_shape for array in arrays):
+            raise ValueError("moment transforms must preserve a shared batch shape")
+        flat_state = mx.zeros((*batch_shape, len(self.flat_nodes)), dtype=dtype)
         for state, indices in zip(arrays, self.type_indices, strict=True):
-            flat_state[indices] = state
+            flat_state[..., indices] = state
 
         updated_carry = []
         for previous, indices in zip(carry, self.moment_indices, strict=True):
-            products = mx.prod(flat_state[indices], axis=-1)
+            products = mx.prod(flat_state[..., indices], axis=-1)
             dtype = mx.result_type(previous.dtype, products.dtype, mx.float32)
             updated_carry.append(previous.astype(dtype) + products.astype(dtype))
         return updated_carry, None

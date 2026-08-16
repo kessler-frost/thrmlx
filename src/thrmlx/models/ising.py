@@ -192,30 +192,6 @@ def model_dtype(program: BlockSamplingProgram) -> mx.Dtype:
     return first_spec.dtype
 
 
-def _phase_moments(
-    keys: mx.array,
-    program: BlockSamplingProgram,
-    schedule: SamplingSchedule,
-    initial_state: Sequence[mx.array],
-    clamped_data: Sequence[mx.array],
-    bias_nodes: Sequence[AbstractNode],
-    weight_edges: Sequence[Edge],
-) -> tuple[mx.array, mx.array]:
-    moments = [
-        estimate_moments(
-            key,
-            bias_nodes,
-            weight_edges,
-            program,
-            schedule,
-            state,
-            clamped_data,
-        )
-        for key, state in zip(keys, initial_state, strict=True)
-    ]
-    return mx.stack([moment[0] for moment in moments]), mx.stack([moment[1] for moment in moments])
-
-
 def estimate_kl_grad(
     key: mx.array,
     training_spec: IsingTrainingSpec,
@@ -238,32 +214,21 @@ def estimate_kl_grad(
         n_chains_positive, positive_batch = init_state_positive[0].shape[:2]
         if positive_batch != n_data:
             raise ValueError("positive initial-state batch axis must match data")
-        positive_keys = mx.random.split(positive_key, n_chains_positive * n_data).reshape(
-            (n_chains_positive, n_data, 2)
+        positive_clamped = [
+            mx.broadcast_to(value, (n_chains_positive, *value.shape)) for value in data
+        ] + [
+            mx.broadcast_to(value, (n_chains_positive, n_data, *value.shape))
+            for value in conditioning_values
+        ]
+        moments_bias_positive, moments_weight_positive = estimate_moments(
+            positive_key,
+            bias_nodes,
+            weight_edges,
+            training_spec.program_positive,
+            training_spec.schedule_positive,
+            init_state_positive,
+            positive_clamped,
         )
-        positive_bias_moments: list[mx.array] = []
-        positive_weight_moments: list[mx.array] = []
-        for chain in range(n_chains_positive):
-            data_bias_moments: list[mx.array] = []
-            data_weight_moments: list[mx.array] = []
-            for datum in range(n_data):
-                initial = [state[chain, datum] for state in init_state_positive]
-                clamped = [value[datum] for value in data] + list(conditioning_values)
-                bias_moments, weight_moments = estimate_moments(
-                    positive_keys[chain, datum],
-                    bias_nodes,
-                    weight_edges,
-                    training_spec.program_positive,
-                    training_spec.schedule_positive,
-                    initial,
-                    clamped,
-                )
-                data_bias_moments.append(bias_moments)
-                data_weight_moments.append(weight_moments)
-            positive_bias_moments.append(mx.stack(data_bias_moments))
-            positive_weight_moments.append(mx.stack(data_weight_moments))
-        moments_bias_positive = mx.stack(positive_bias_moments)
-        moments_weight_positive = mx.stack(positive_weight_moments)
     else:
         if sum(value.shape[-1] for value in data) != len(bias_nodes):
             raise ValueError("fully visible data must include every requested bias node")
@@ -278,18 +243,17 @@ def estimate_kl_grad(
     if not init_state_negative:
         raise ValueError("negative-phase initial state must not be empty")
     n_chains_negative = init_state_negative[0].shape[0]
-    negative_keys = mx.random.split(negative_key, n_chains_negative)
-    negative_initial = [
-        [state[chain] for state in init_state_negative] for chain in range(n_chains_negative)
+    negative_clamped = [
+        mx.broadcast_to(value, (n_chains_negative, *value.shape)) for value in conditioning_values
     ]
-    moments_bias_negative, moments_weight_negative = _phase_moments(
-        negative_keys,
-        training_spec.program_negative,
-        training_spec.schedule_negative,
-        negative_initial,
-        conditioning_values,
+    moments_bias_negative, moments_weight_negative = estimate_moments(
+        negative_key,
         bias_nodes,
         weight_edges,
+        training_spec.program_negative,
+        training_spec.schedule_negative,
+        init_state_negative,
+        negative_clamped,
     )
     beta = training_spec.ebm.beta
     gradient_biases = -beta * (

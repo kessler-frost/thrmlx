@@ -1,0 +1,396 @@
+{
+  "cases": [
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 1.3972381248604506,
+            "warm_elapsed_seconds": [
+              0.4923109591472894,
+              0.5663775829598308,
+              0.5248580838087946,
+              0.48017383296974003,
+              0.4851275000255555
+            ],
+            "warm_median_elapsed_seconds": 0.4923109591472894,
+            "warm_units_per_second": 66559.55832621732
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.02923112502321601,
+            "warm_elapsed_seconds": [
+              0.008284708950668573,
+              0.008226041914895177,
+              0.008266207994893193,
+              0.008267458062618971,
+              0.008282417198643088
+            ],
+            "warm_median_elapsed_seconds": 0.008267458062618971,
+            "warm_units_per_second": 3963491.5292959744
+          }
+        }
+      },
+      "id": "dense_rbm",
+      "objectives": [
+        "TestSampling::test_binary",
+        "TestEstimateKLGrad::test_estimate_kl_grad"
+      ],
+      "title": "Batched bipartite Ising / RBM",
+      "unit": "recorded states",
+      "work_units": 32768
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.6849191659130156,
+            "warm_elapsed_seconds": [
+              0.2350930420216173,
+              0.24177391617558897,
+              0.23959137499332428,
+              0.24600166594609618,
+              0.23643604200333357
+            ],
+            "warm_median_elapsed_seconds": 0.23959137499332428,
+            "warm_units_per_second": 1068.4858751995264
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.07237195805646479,
+            "warm_elapsed_seconds": [
+              0.05121962493285537,
+              0.051970083033666015,
+              0.05404924997128546,
+              0.052646292140707374,
+              0.05327162495814264
+            ],
+            "warm_median_elapsed_seconds": 0.052646292140707374,
+            "warm_units_per_second": 4862.640645532844
+          }
+        }
+      },
+      "id": "ising_line",
+      "objectives": [
+        "TestLine::test_sample"
+      ],
+      "title": "Sparse line Ising sampling",
+      "unit": "recorded states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.46248862496577203,
+            "warm_elapsed_seconds": [
+              0.2554757909383625,
+              0.2493389998562634,
+              0.25462583312764764,
+              0.27478275005705655,
+              0.2542019581887871
+            ],
+            "warm_median_elapsed_seconds": 0.25462583312764764,
+            "warm_units_per_second": 1005.3968085463798
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.056751125026494265,
+            "warm_elapsed_seconds": [
+              0.049383125035092235,
+              0.050752416951581836,
+              0.05175733403302729,
+              0.05334720900282264,
+              0.05209641717374325
+            ],
+            "warm_median_elapsed_seconds": 0.05175733403302729,
+            "warm_units_per_second": 4946.158931536964
+          }
+        }
+      },
+      "id": "ising_grid",
+      "objectives": [
+        "TestBigGrid::test_big",
+        "TestHeteroGrid::test_grid"
+      ],
+      "title": "Checkerboard grid Ising sampling",
+      "unit": "recorded states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.3062160420231521,
+            "warm_elapsed_seconds": [
+              0.2377822077833116,
+              0.23908729199320078,
+              0.2553211669437587,
+              0.24939758307300508,
+              0.28864925005473197
+            ],
+            "warm_median_elapsed_seconds": 0.24939758307300508,
+            "warm_units_per_second": 1026.4734599495387
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.0548488749191165,
+            "warm_elapsed_seconds": [
+              0.05329991620965302,
+              0.05362866702489555,
+              0.05285633308812976,
+              0.054600375005975366,
+              0.05483716609887779
+            ],
+            "warm_median_elapsed_seconds": 0.05362866702489555,
+            "warm_units_per_second": 4773.566344305359
+          }
+        }
+      },
+      "id": "spin_factor",
+      "objectives": [
+        "TestSampling::test_binary",
+        "TestBlockSample::test_binary_bias"
+      ],
+      "title": "Low-level spin-factor Gibbs program",
+      "unit": "recorded states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.465093000093475,
+            "warm_elapsed_seconds": [
+              0.34757850016467273,
+              0.3323542920406908,
+              0.33998295781202614,
+              0.3304333749692887,
+              0.31306208297610283
+            ],
+            "warm_median_elapsed_seconds": 0.3323542920406908,
+            "warm_units_per_second": 770.2623559579529
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.10797820799052715,
+            "warm_elapsed_seconds": [
+              0.10351891699247062,
+              0.10265645897015929,
+              0.08579262509010732,
+              0.08638420794159174,
+              0.08692800020799041
+            ],
+            "warm_median_elapsed_seconds": 0.08692800020799041,
+            "warm_units_per_second": 2944.9659417848716
+          }
+        }
+      },
+      "id": "categorical_factor",
+      "objectives": [
+        "TestSampling::test_categorical",
+        "TestBlockSample::test_categorical_triplet"
+      ],
+      "title": "Categorical factor Gibbs program",
+      "unit": "recorded states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.4268277920782566,
+            "warm_elapsed_seconds": [
+              0.3053210829384625,
+              0.32429699995554984,
+              0.30053154192864895,
+              0.3014878749381751,
+              0.29223666596226394
+            ],
+            "warm_median_elapsed_seconds": 0.3014878749381751,
+            "warm_units_per_second": 849.1220419809483
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.06160641694441438,
+            "warm_elapsed_seconds": [
+              0.05022870795801282,
+              0.05245399987325072,
+              0.05067624989897013,
+              0.05093483394011855,
+              0.05138166714459658
+            ],
+            "warm_median_elapsed_seconds": 0.05093483394011855,
+            "warm_units_per_second": 5026.029932697257
+          }
+        }
+      },
+      "id": "mixed_factor",
+      "objectives": [
+        "TestSampling::test_mixed",
+        "TestBlockSample::test_ragged_mixed"
+      ],
+      "title": "Mixed spin/categorical factor program",
+      "unit": "recorded states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.8680374589748681,
+            "warm_elapsed_seconds": [
+              0.22727604187093675,
+              0.2215778750833124,
+              0.224769749911502,
+              0.23004254093393683,
+              0.22835916699841619
+            ],
+            "warm_median_elapsed_seconds": 0.22727604187093675,
+            "warm_units_per_second": 1126.3835725605197
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.07543524983339012,
+            "warm_elapsed_seconds": [
+              0.0644999579526484,
+              0.0686341670807451,
+              0.06597054097801447,
+              0.06595233385451138,
+              0.06582008395344019
+            ],
+            "warm_median_elapsed_seconds": 0.06595233385451138,
+            "warm_units_per_second": 3881.5912195727196
+          }
+        }
+      },
+      "id": "moment_observer",
+      "objectives": [
+        "TestMomentAccumulator::test_first_moments",
+        "TestMomentAccumulator::test_second_moments"
+      ],
+      "title": "Ising moment observer",
+      "unit": "observed states",
+      "work_units": 256
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 2.331284040817991,
+            "warm_elapsed_seconds": [
+              0.5359175829216838,
+              0.5058908751234412,
+              0.5525200839620084,
+              0.5477885829750448,
+              0.5685152499936521
+            ],
+            "warm_median_elapsed_seconds": 0.5477885829750448,
+            "warm_units_per_second": 1.8255217999779967
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.14765970781445503,
+            "warm_elapsed_seconds": [
+              0.12945383391343057,
+              0.12892845808528364,
+              0.13067250000312924,
+              0.13057695794850588,
+              0.1326158749870956
+            ],
+            "warm_median_elapsed_seconds": 0.13057695794850588,
+            "warm_units_per_second": 7.658319015169265
+          }
+        }
+      },
+      "id": "contrastive_gradient",
+      "objectives": [
+        "TestEstimateKLGrad::test_estimate_kl_grad"
+      ],
+      "title": "Semi-visible contrastive gradient",
+      "unit": "gradient estimates",
+      "work_units": 1
+    },
+    {
+      "adapters": {
+        "thrml": {
+          "device": "cpu",
+          "timing": {
+            "cold_elapsed_seconds": 1.3776090829633176,
+            "warm_elapsed_seconds": [
+              0.41783033311367035,
+              0.40063508320599794,
+              0.420460875146091,
+              0.4270707501564175,
+              0.46107479208149016
+            ],
+            "warm_median_elapsed_seconds": 0.420460875146091,
+            "warm_units_per_second": 2.3783425738543347
+          }
+        },
+        "thrmlx": {
+          "device": "gpu",
+          "timing": {
+            "cold_elapsed_seconds": 0.13430912513285875,
+            "warm_elapsed_seconds": [
+              0.09428679198026657,
+              0.09535387507639825,
+              0.09438616689294577,
+              0.0948806251399219,
+              0.09395862487144768
+            ],
+            "warm_median_elapsed_seconds": 0.09438616689294577,
+            "warm_units_per_second": 10.594772866814427
+          }
+        }
+      },
+      "id": "mnist_fixture_update",
+      "objectives": [
+        "TestTrainMnist::test_train_mnist",
+        "TestEstimateKLGradFullyVisible::test_fully_visible_ising"
+      ],
+      "title": "MNIST-shaped contrastive update",
+      "unit": "fixture updates",
+      "work_units": 1
+    }
+  ],
+  "comparison_note": "MLX runs on Apple Metal GPU while upstream THRML runs through JAX CPU on this Mac. These are local-use measurements, not same-accelerator framework comparisons.",
+  "host": {
+    "machine": "arm64",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "processor": "arm",
+    "python": "3.12.12 (main, Feb 12 2026, 00:42:34) [Clang 21.1.4 ]"
+  },
+  "schema_version": 1,
+  "software": {
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "mlx": "0.32.0",
+    "thrml": "0.1.4",
+    "thrml_commit": "9c4e6fbb800f5e5c627122e668ff1b158ef3782b"
+  },
+  "timestamp_utc": "2026-08-16T09:33:00.929914+00:00"
+}

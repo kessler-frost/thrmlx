@@ -65,3 +65,22 @@ def test_state_observer_records_requested_nodes_in_program_layout() -> None:
 
     assert carry is None
     assert [state.tolist() for state in recorded] == [[2], [True]]
+
+
+def test_moment_observer_accumulates_a_batched_chain_axis() -> None:
+    """Catch a batched sampler whose observer falls back to Python-side chains."""
+
+    spins = [SpinNode(), SpinNode()]
+    block = Block(spins)
+    program = _Program(BlockGibbsSpec([block], [], {SpinNode: ArraySpec((), mx.bool_)}))
+    observer = MomentAccumulatorObserver([[(spins[0],), (spins[1],)]])
+
+    carry, _ = observer(
+        program,
+        [mx.array([[True, False], [False, True], [True, True]])],
+        [],
+        observer.init(),
+        0,
+    )
+
+    assert carry[0].tolist() == [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
