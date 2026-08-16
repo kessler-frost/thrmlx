@@ -16,7 +16,12 @@ from thrmlx.block_sampling import (
     sample_single_block,
     sample_states,
 )
-from thrmlx.conditional_samplers import AbstractConditionalSampler
+from thrmlx.conditional_samplers import (
+    AbstractConditionalSampler,
+    AbstractParametricConditionalSampler,
+    BernoulliConditional,
+    SoftmaxConditional,
+)
 from thrmlx.factor import AbstractFactor, FactorSamplingProgram, WeightedFactor
 from thrmlx.interaction import InteractionGroup
 from thrmlx.model import Ising
@@ -37,7 +42,9 @@ __all__ = [
     "AbstractConditionalSampler",
     "AbstractFactor",
     "AbstractNode",
+    "AbstractParametricConditionalSampler",
     "ArraySpec",
+    "BernoulliConditional",
     "Block",
     "BlockGibbsSpec",
     "BlockSamplingProgram",
@@ -48,6 +55,7 @@ __all__ = [
     "InteractionGroup",
     "Ising",
     "SamplingSchedule",
+    "SoftmaxConditional",
     "SpinNode",
     "WeightedFactor",
     "__version__",

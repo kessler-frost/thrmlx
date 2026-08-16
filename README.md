@@ -13,10 +13,11 @@ backend.
 > by, or endorsed by Extropic.
 
 The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. The
-block-state, generic sampling, factor, and interaction foundations have **28 / 60 translated
-objectives green**, so this is not yet full THRML parity. The current Ising adapter and newly
-compatible THRML-style node/block/program/factor layers are followed by discrete EBMs, observers,
-and training in ledger order. See [UPSTREAM.md](UPSTREAM.md).
+block-state, generic sampling, factor, interaction, and discrete-EBM layers have **52 / 60
+translated objectives green**, so this is not yet full THRML parity. The current Ising adapter and
+compatible THRML-style node/block/program/factor layers now cover spin, categorical, mixed, and
+checkerboard discrete EBMs. Observers, Ising learning, the README objective, and the MNIST fixture
+remain in ledger order. See [UPSTREAM.md](UPSTREAM.md).
 
 ## Preliminary Ising-only Apple-Silicon baseline
 
@@ -50,6 +51,7 @@ uv sync --frozen --group dev
 uv run --frozen --group dev python examples/two_spin.py
 uv run --frozen --group dev python examples/generic_block_sampling.py
 uv run --frozen --group dev python examples/factor_sampling.py
+uv run --frozen --group dev python examples/discrete_ebm.py
 ```
 
 Undo the project-local setup with:
@@ -163,12 +165,12 @@ does not turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 
-The current compatibility work has completed node/block-state management and generic block
-sampling, and proceeds next through discrete factors and observers, then Ising learning and the
-MNIST fixture. The benchmark matrix will cover the corresponding THRML workloads: line/grid
-Ising, bipartite RBM, categorical factors, mixed grids, clamped positive phase, moment observers,
-contrastive gradients, and the MNIST fixture. Results will identify the exact green upstream
-objectives they exercise.
+The current compatibility work has completed node/block-state management, generic block sampling,
+factor contracts, and discrete EBM factors/conditionals. It proceeds through observers, Ising
+learning, the README objective, and the MNIST fixture. The benchmark matrix will cover the
+corresponding THRML workloads: line/grid Ising, bipartite RBM, categorical factors, mixed grids,
+clamped positive phase, moment observers, contrastive gradients, and the MNIST fixture. Results
+will identify the exact green upstream objectives they exercise.
 
 ## License and provenance
 

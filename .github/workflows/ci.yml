@@ -72,6 +72,8 @@ jobs:
         run: uv run --frozen --group dev python examples/generic_block_sampling.py
       - name: Run THRML-style factor sampling example
         run: uv run --frozen --group dev python examples/factor_sampling.py
+      - name: Run THRML-style discrete EBM example
+        run: uv run --frozen --group dev python examples/discrete_ebm.py
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel

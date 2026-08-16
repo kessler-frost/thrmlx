@@ -1,5 +1,18 @@
 # Project log
 
+## 2026-08-16 — Discrete EBM parity
+
+- Ported the factorized discrete EBM layer: spin, categorical, and mixed factors lower into static
+  directed interactions backed by MLX arrays; exact Boolean Bernoulli and categorical-softmax
+  conditionals consume those interactions without JAX or Equinox.
+- Translated and passed all 24 upstream discrete-EBM objectives: factor validation, interaction
+  lowering, binary/categorical/mixed Boltzmann marginals, clamped triplets, ragged mixed updates,
+  energies, equivalent representations, a mixed checkerboard grid, and a 1,024-node grid sweep.
+  Compatibility is now 52 green / 8 planned objectives.
+- Added `examples/discrete_ebm.py`, a runnable THRML-style coupled spin/categorical sampling
+  program. Benchmark rows for this newly green surface follow after the remaining API work and
+  stable paired measurement harness are in place.
+
 ## 2026-08-16 — v0.1 direction
 
 - Chose an MLX-native deep interface over a mechanical port of THRML's JAX graph/program API.

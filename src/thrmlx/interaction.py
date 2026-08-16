@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import TypeAlias
+from dataclasses import fields, is_dataclass
+from typing import Any, TypeAlias
 
 # MLX 0.32 ships its native extension without typing metadata.
 import mlx.core as mx  # ty: ignore[unresolved-import]
@@ -11,12 +12,17 @@ import mlx.core as mx  # ty: ignore[unresolved-import]
 from thrmlx.block_management import Block
 from thrmlx.pgm import AbstractNode
 
-Interaction: TypeAlias = mx.array | tuple["Interaction", ...] | dict[str, "Interaction"]
+InteractionScalar: TypeAlias = bool | float | int
+Interaction: TypeAlias = (
+    mx.array | InteractionScalar | tuple["Interaction", ...] | dict[str, "Interaction"] | Any
+)
 
 
 def _walk_interaction(interaction: Interaction) -> Iterator[mx.array]:
     if isinstance(interaction, mx.array):
         yield interaction
+        return
+    if isinstance(interaction, (bool, float, int)):
         return
     if isinstance(interaction, tuple):
         for value in interaction:
@@ -28,7 +34,13 @@ def _walk_interaction(interaction: Interaction) -> Iterator[mx.array]:
         for value in interaction.values():
             yield from _walk_interaction(value)
         return
-    raise TypeError("interactions contain only MLX arrays, tuples, and dictionaries")
+    if is_dataclass(interaction) and not isinstance(interaction, type):
+        for field in fields(interaction):
+            yield from _walk_interaction(getattr(interaction, field.name))
+        return
+    raise TypeError(
+        "interactions contain MLX arrays, static scalars, tuples, dictionaries, and dataclasses"
+    )
 
 
 class InteractionGroup:

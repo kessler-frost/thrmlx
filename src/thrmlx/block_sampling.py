@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, is_dataclass
 from typing import cast
 
 # MLX 0.32 ships its native extension without typing metadata.
@@ -72,9 +72,21 @@ class BlockGibbsSpec(BlockSpec):
 def _slice_interaction(interaction: Interaction, indices: mx.array) -> Interaction:
     if isinstance(interaction, mx.array):
         return mx.take(interaction, indices, axis=0)
+    if isinstance(interaction, (bool, float, int)):
+        return interaction
     if isinstance(interaction, tuple):
         return tuple(_slice_interaction(value, indices) for value in interaction)
-    return {key: _slice_interaction(value, indices) for key, value in interaction.items()}
+    if isinstance(interaction, dict):
+        return {key: _slice_interaction(value, indices) for key, value in interaction.items()}
+    if is_dataclass(interaction) and not isinstance(interaction, type):
+        values = {
+            field.name: _slice_interaction(getattr(interaction, field.name), indices)
+            for field in fields(interaction)
+        }
+        return type(interaction)(**values)
+    raise TypeError(
+        "interaction must be an MLX array, static scalar, tuple, dictionary, or dataclass"
+    )
 
 
 def _compile_block_interactions(
