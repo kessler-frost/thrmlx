@@ -68,6 +68,8 @@ jobs:
         run: uv run --frozen --group dev python examples/two_spin.py
       - name: Run THRML-style block-state example
         run: uv run --frozen --group dev python examples/block_state_round_trip.py
+      - name: Run THRML-style generic sampling example
+        run: uv run --frozen --group dev python examples/generic_block_sampling.py
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel

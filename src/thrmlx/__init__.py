@@ -9,6 +9,15 @@ from thrmlx.block_management import (
     make_empty_block_state,
     verify_block_state,
 )
+from thrmlx.block_sampling import (
+    BlockGibbsSpec,
+    BlockSamplingProgram,
+    sample_blocks,
+    sample_single_block,
+    sample_states,
+)
+from thrmlx.conditional_samplers import AbstractConditionalSampler
+from thrmlx.interaction import InteractionGroup
 from thrmlx.model import Ising
 from thrmlx.pgm import (
     DEFAULT_NODE_SHAPE_DTYPES,
@@ -24,12 +33,16 @@ __version__ = "0.1.0"
 
 __all__ = [
     "DEFAULT_NODE_SHAPE_DTYPES",
+    "AbstractConditionalSampler",
     "AbstractNode",
     "ArraySpec",
     "Block",
+    "BlockGibbsSpec",
+    "BlockSamplingProgram",
     "BlockSpec",
     "CategoricalNode",
     "Clamp",
+    "InteractionGroup",
     "Ising",
     "SamplingSchedule",
     "SpinNode",
@@ -39,5 +52,8 @@ __all__ = [
     "get_node_locations",
     "make_empty_block_state",
     "sample",
+    "sample_blocks",
+    "sample_single_block",
+    "sample_states",
     "verify_block_state",
 ]

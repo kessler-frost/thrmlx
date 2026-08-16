@@ -13,9 +13,10 @@ backend.
 > by, or endorsed by Extropic.
 
 The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. The
-block-state foundation has **14 / 60 translated objectives green**, so this is not yet full THRML
-parity. The current Ising adapter and newly compatible node/block state layer are followed by
-generic sampling, factors, observers, and training in ledger order. See [UPSTREAM.md](UPSTREAM.md).
+block-state and generic sampling foundations have **20 / 60 translated objectives green**, so this
+is not yet full THRML parity. The current Ising adapter and newly compatible THRML-style
+node/block/program layers are followed by factors, observers, and training in ledger order. See
+[UPSTREAM.md](UPSTREAM.md).
 
 ## Preliminary Ising-only Apple-Silicon baseline
 
@@ -47,6 +48,7 @@ git clone https://github.com/kessler-frost/thrmlx.git
 cd thrmlx
 uv sync --frozen --group dev
 uv run --frozen --group dev python examples/two_spin.py
+uv run --frozen --group dev python examples/generic_block_sampling.py
 ```
 
 Undo the project-local setup with:
@@ -160,11 +162,12 @@ does not turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 
-The current compatibility work proceeds through node/block-state management, generic block
-sampling, discrete factors and observers, then Ising learning and the MNIST fixture. The benchmark
-matrix will cover the corresponding THRML workloads: line/grid Ising, bipartite RBM, categorical
-factors, mixed grids, clamped positive phase, moment observers, contrastive gradients, and the
-MNIST fixture. Results will identify the exact green upstream objectives they exercise.
+The current compatibility work has completed node/block-state management and generic block
+sampling, and proceeds next through discrete factors and observers, then Ising learning and the
+MNIST fixture. The benchmark matrix will cover the corresponding THRML workloads: line/grid
+Ising, bipartite RBM, categorical factors, mixed grids, clamped positive phase, moment observers,
+contrastive gradients, and the MNIST fixture. Results will identify the exact green upstream
+objectives they exercise.
 
 ## License and provenance
 

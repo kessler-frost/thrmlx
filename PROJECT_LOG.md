@@ -52,3 +52,15 @@
   Pro, but the documented 0.4.30/0.4.35 compatibility pair lacked jax.tree.flatten_with_path used
   by THRML; the newer 0.5.2/0.1.1 pair failed with default_memory_space unsupported. No JAX-Metal
   performance row is published.
+
+## 2026-08-16 — Generic THRML block sampling
+
+- Ported THRML's generic program seam to MLX: conditional samplers receive statically lowered
+  interaction slices, active masks, and explicit MLX tail state; BlockGibbsSpec preserves free
+  superblock ordering and clamped blocks.
+- Translated and passed all six upstream block-sampling objectives, including scheduled recording,
+  sampler-count/state guardrails, and nested tuple/dictionary state. Compatibility now stands at
+  20 green / 40 planned objectives.
+- Added generic_block_sampling.py as a non-Ising THRML-style example. It is intentionally a
+  correctness example rather than a fabricated framework-performance result; factor and observer
+  ports are the next benchmark-eligible surface.
