@@ -1,7 +1,7 @@
 import mlx.core as mx
 import pytest
 
-from thrmlx import Ising, SamplingSchedule, sample
+from thrmlx import Clamp, Ising, SamplingSchedule, sample
 
 
 def test_sample_retains_chain_sample_and_spin_axes() -> None:
@@ -153,3 +153,102 @@ def test_sample_does_not_mutate_supplied_initial_state() -> None:
     )
 
     assert initial.tolist() == [[False]]
+
+
+def test_shared_clamp_overrides_initial_and_survives_every_draw() -> None:
+    model = Ising(mx.array([-100.0, 100.0]), mx.zeros((2, 2)))
+    clamp = Clamp(
+        mask=mx.array([True, False]),
+        values=mx.array([True, False]),
+    )
+
+    trace = sample(
+        mx.random.key(5),
+        model,
+        SamplingSchedule(warmup=2, samples=3, sweeps_per_sample=2),
+        chains=4,
+        initial=mx.zeros((4, 2), dtype=mx.bool_),
+        clamp=clamp,
+    )
+
+    assert mx.all(trace[:, :, 0]).item()
+    assert mx.all(trace[:, :, 1]).item()
+
+
+def test_per_chain_clamp_broadcasts_values_and_fixes_selected_sites() -> None:
+    model = Ising(mx.zeros((2,)), mx.zeros((2, 2)))
+    clamp = Clamp(
+        mask=mx.array([[True, False], [False, True], [True, True]]),
+        values=mx.array([True, False]),
+    )
+
+    trace = sample(
+        mx.random.key(6),
+        model,
+        SamplingSchedule(warmup=1, samples=3),
+        chains=3,
+        clamp=clamp,
+    )
+
+    assert mx.all(trace[0, :, 0]).item()
+    assert mx.all(~trace[1, :, 1]).item()
+    assert mx.all(trace[2, :, 0]).item()
+    assert mx.all(~trace[2, :, 1]).item()
+
+
+@pytest.mark.parametrize(
+    "clamp",
+    [
+        Clamp(mask=mx.array([True, False]), values=mx.array([True, False])),
+        Clamp(
+            mask=mx.array([[True], [False]]),
+            values=mx.array([[True], [False]]),
+        ),
+    ],
+)
+def test_sample_validates_clamp_against_model_and_chains(clamp: Clamp) -> None:
+    model = Ising(mx.array([0.0]), mx.array([[0.0]]))
+
+    with pytest.raises(ValueError, match="clamp"):
+        sample(
+            mx.random.key(0),
+            model,
+            SamplingSchedule(),
+            chains=1,
+            clamp=clamp,
+        )
+
+
+def test_identical_explicit_key_reproduces_trace() -> None:
+    model = Ising(mx.zeros((4,)), mx.zeros((4, 4)))
+    schedule = SamplingSchedule(warmup=2, samples=5, sweeps_per_sample=2)
+    key = mx.random.key(91)
+
+    first = sample(key, model, schedule, chains=16)
+    second = sample(key, model, schedule, chains=16)
+
+    assert mx.array_equal(first, second).item()
+
+
+def test_global_mlx_seed_does_not_change_explicit_key_trace() -> None:
+    model = Ising(mx.zeros((4,)), mx.zeros((4, 4)))
+    schedule = SamplingSchedule(warmup=2, samples=5, sweeps_per_sample=2)
+    key = mx.random.key(92)
+
+    mx.random.seed(1)
+    first = sample(key, model, schedule, chains=16)
+    mx.random.seed(999)
+    second = sample(key, model, schedule, chains=16)
+
+    assert mx.array_equal(first, second).item()
+
+
+def test_split_keys_produce_distinct_traces() -> None:
+    model = Ising(mx.zeros((8,)), mx.zeros((8, 8)))
+    schedule = SamplingSchedule(warmup=2, samples=8, sweeps_per_sample=1)
+    keys = mx.random.split(mx.random.key(93), 2)
+
+    first = sample(keys[0], model, schedule, chains=64)
+    second = sample(keys[1], model, schedule, chains=64)
+
+    assert not mx.array_equal(first, second).item()

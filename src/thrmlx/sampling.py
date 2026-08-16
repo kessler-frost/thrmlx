@@ -39,6 +39,26 @@ def _prepare_initial(
     return mx.array(initial)
 
 
+def _prepare_clamp(
+    clamp: Clamp | None,
+    *,
+    chains: int,
+    n_spins: int,
+) -> tuple[mx.array, mx.array]:
+    if clamp is None:
+        empty = mx.zeros((chains, n_spins), dtype=mx.bool_)
+        return empty, empty
+    if not isinstance(clamp, Clamp):
+        raise TypeError("clamp must be a Clamp instance")
+    expected_mask_shape = (n_spins,) if clamp.mask.ndim == 1 else (chains, n_spins)
+    if clamp.mask.shape != expected_mask_shape:
+        raise ValueError("clamp mask must match the model spins and requested chains")
+    return (
+        mx.broadcast_to(clamp.mask, (chains, n_spins)),
+        mx.broadcast_to(clamp.values, (chains, n_spins)),
+    )
+
+
 @mx.compile
 def _update_block(
     state: mx.array,
@@ -47,6 +67,8 @@ def _update_block(
     block: mx.array,
     key: mx.array,
     beta: mx.array,
+    clamp_mask: mx.array,
+    clamp_values: mx.array,
 ) -> mx.array:
     signed = 2 * state.astype(fields.dtype) - 1
     local_fields = fields + signed @ couplings
@@ -54,7 +76,7 @@ def _update_block(
     draws = mx.random.bernoulli(probabilities, key=key)
     updated = mx.array(state)
     updated[:, block] = draws
-    return updated
+    return mx.where(clamp_mask, clamp_values, updated)
 
 
 def _run_sweeps(
@@ -64,6 +86,8 @@ def _run_sweeps(
     key_offset: int,
     sweeps: int,
     beta: mx.array,
+    clamp_mask: mx.array,
+    clamp_values: mx.array,
 ) -> tuple[mx.array, int]:
     for _ in range(sweeps):
         for block in model._block_indices:
@@ -74,6 +98,8 @@ def _run_sweeps(
                 block,
                 keys[key_offset],
                 beta,
+                clamp_mask,
+                clamp_values,
             )
             key_offset += 1
     return state, key_offset
@@ -96,14 +122,27 @@ def sample(
         raise TypeError("model must be an Ising instance")
     if not isinstance(schedule, SamplingSchedule):
         raise TypeError("schedule must be a SamplingSchedule")
-    if clamp is not None:
-        raise NotImplementedError("clamping is implemented in the next v0.1 increment")
 
     total_sweeps = schedule.warmup + (schedule.samples - 1) * schedule.sweeps_per_sample
     keys = mx.random.split(key, 1 + total_sweeps * len(model.blocks))
     state = _prepare_initial(initial, chains=chains, n_spins=model.n_spins, key=keys[0])
+    clamp_mask, clamp_values = _prepare_clamp(
+        clamp,
+        chains=chains,
+        n_spins=model.n_spins,
+    )
+    state = mx.where(clamp_mask, clamp_values, state)
     beta = mx.array(model._beta, dtype=model._fields.dtype)
-    state, key_offset = _run_sweeps(state, model, keys, 1, schedule.warmup, beta)
+    state, key_offset = _run_sweeps(
+        state,
+        model,
+        keys,
+        1,
+        schedule.warmup,
+        beta,
+        clamp_mask,
+        clamp_values,
+    )
     records = [mx.array(state)]
 
     for _ in range(1, schedule.samples):
@@ -114,6 +153,8 @@ def sample(
             key_offset,
             schedule.sweeps_per_sample,
             beta,
+            clamp_mask,
+            clamp_values,
         )
         records.append(mx.array(state))
 
