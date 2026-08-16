@@ -14,6 +14,24 @@ random keys, and optional clamping without exposing JAX graph/program machinery.
 Version 0.1 targets correctness and a clean local-Mac interface. Exact enumeration and fixed-key
 statistical tests are release gates; benchmark results are measurements, not promises.
 
+## Measured Apple-Silicon baseline
+
+On 2026-08-16, the primary two-block dense RBM workload ran on a Mac mini with Apple M4 Pro and
+48 GB memory (macOS 26.5.2, Python 3.12.12). The request uses 128 visible + 128 latent spins,
+16,384 bipartite edges, 1,024 chains, 20 warmup sweeps, 32 recorded states per chain, and seven
+warm repetitions. The full machine, package, workload, and raw-timing provenance is committed in
+[the result JSON](benchmarks/results/2026-08-16-m4-pro.json).
+
+| Adapter | Device | Cold time to first result | Warm median time | Warm recorded states/s |
+| --- | --- | ---: | ---: | ---: |
+| `thrmlx` 0.1.0 / MLX 0.32.0 | Metal GPU | 80.1 ms | 8.94 ms | 3,664,966 |
+| THRML 0.1.4 / JAX 0.11.0 | JAX CPU | 1.30 s | 532.8 ms | 61,504 |
+
+For this specific, sufficiently batched local workload, `thrmlx` records states about 59.6× faster.
+This is not a same-accelerator framework comparison: MLX uses Metal while the [official JAX macOS
+installation path](https://docs.jax.dev/en/latest/installation.html) is CPU. Small workloads can be
+overhead-bound and need not show the same relationship.
+
 ## Quick start
 
 Requires Python 3.10+, uv, Apple Silicon, and macOS 14 or newer.
@@ -21,8 +39,8 @@ Requires Python 3.10+, uv, Apple Silicon, and macOS 14 or newer.
 ```bash
 git clone https://github.com/kessler-frost/thrmlx.git
 cd thrmlx
-uv sync --frozen --all-groups
-uv run python examples/two_spin.py
+uv sync --frozen --group dev
+uv run --frozen --group dev python examples/two_spin.py
 ```
 
 Undo the project-local setup with:
@@ -118,17 +136,21 @@ uv build
 ```
 
 Linux CPU MLX is a secondary semantic-checking target. Set it up with
-`uv sync --frozen --all-groups --extra cpu`; the same `python3 scripts/teardown.py` removes that
+`uv sync --frozen --group dev --extra cpu`; the same `python3 scripts/teardown.py` removes that
 environment.
 
-Run the bounded local benchmark with:
+Reproduce the paired local benchmark with its optional, pinned THRML/JAX dependency group:
 
 ```bash
-uv run python benchmarks/dense_sampling.py
+uv sync --frozen --group benchmark
+uv run --frozen --group benchmark python -m benchmarks.run \
+  --output benchmarks/results/local.json
+python3 scripts/teardown.py
 ```
 
-It emits JSON containing the model, block, schedule, MLX/device, and same-shape cold and warm
-throughput metadata needed to compare runs honestly.
+It emits JSON containing hardware/software provenance, the complete workload/schedule, cold time
+to first result, seven materialized warm timings, and separate MLX/THRML devices. It intentionally
+does not turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 

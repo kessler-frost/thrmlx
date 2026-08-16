@@ -111,8 +111,8 @@ class BenchmarkConfig:
 
 def expanded_couplings(model: BenchmarkWorkload) -> np.ndarray:
     couplings = np.zeros((model.n_spins, model.n_spins), dtype=np.float32)
-    couplings[:model.n_visible, model.n_visible:] = model.edge_weights
-    couplings[model.n_visible:, :model.n_visible] = model.edge_weights.T
+    couplings[: model.n_visible, model.n_visible :] = model.edge_weights
+    couplings[model.n_visible :, : model.n_visible] = model.edge_weights.T
     return couplings
 ```
 
@@ -285,7 +285,9 @@ def test_measure_keeps_cold_and_warm_timings_separate() -> None:
     assert result.warm_median_elapsed_seconds == 2.5
 
 
-def test_json_report_contains_provenance_and_two_named_adapters(capsys: pytest.CaptureFixture[str]) -> None:
+def test_json_report_contains_provenance_and_two_named_adapters(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     run_main(["--smoke"])
     report = json.loads(capsys.readouterr().out)
 
@@ -343,7 +345,7 @@ git commit -m "feat: add reproducible benchmark report"
 - Consumes the normal `benchmarks/run.py` JSON report.
 - Produces a README result table derived exactly from `benchmarks/results/2026-08-16-m4-pro.json`.
 
-- [ ] **Step 1: Run the normal benchmark and capture a result artifact**
+- [x] **Step 1: Run the normal benchmark and capture a result artifact**
 
 Run:
 
@@ -358,7 +360,7 @@ device, pinned THRML commit, full primary dimensions, seven warm repetitions, an
 values. If either adapter fails, do not write a partial comparison table; repair the runner through a
 new failing regression test first.
 
-- [ ] **Step 2: Add the README result table and reproducible setup**
+- [x] **Step 2: Add the README result table and reproducible setup**
 
 Place a `## Measured Apple-Silicon baseline` section immediately after the project introduction.
 State the date, Mac mini M4 Pro / 48 GB, versions, workload, schedule, and accelerator caveat.
@@ -376,7 +378,7 @@ Do not call the result a promise, a universal speedup, or a same-device comparis
 single-engine `dense_sampling.py` command or rewrite it to invoke the new report; do not retain two
 conflicting benchmark protocols.
 
-- [ ] **Step 3: Record the decision and test full quality gates**
+- [x] **Step 3: Record the decision and test full quality gates**
 
 Add the benchmark contract, actual result, and no-PyPI policy to `PROJECT_LOG.md`. Run serial and
 parallel full suites, ensuring their pass/fail/error counts are identical, then run:
@@ -394,7 +396,7 @@ Create a clean temporary uv-managed environment and install the built wheel; run
 example. Inspect `git diff --check`, `git status --short`, and a content search proving the README
 numbers occur in the checked-in JSON.
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```bash
 git add README.md PROJECT_LOG.md CONTRIBUTING.md benchmarks tests pyproject.toml uv.lock \

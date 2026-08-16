@@ -20,3 +20,17 @@
   verifying the mutation was present, then passed after restoring and verifying the correct sign.
 - Added a structured local benchmark. Performance remains informational until representative
   workloads and repeated warm-run results establish a baseline.
+
+## 2026-08-16 — Apple-Silicon performance baseline
+
+- Added a framework-neutral, two-block dense RBM workload and paired adapters: `thrmlx` on MLX
+  Metal and upstream THRML v0.1.4 at `9c4e6fbb800f5e5c627122e668ff1b158ef3782b` on JAX CPU.
+  THRML/JAX remain a pinned `benchmark` dependency group, never a `thrmlx` runtime dependency;
+  PyPI publication remains out of scope.
+- Measured the Mac mini M4 Pro / 48 GB primary request (256 spins, 16,384 edges, 1,024 chains,
+  20 warmup sweeps, 32 samples, seven warm repetitions). MLX recorded 3,664,966 warm states/s
+  (8.94 ms median); THRML/JAX CPU recorded 61,504 (532.8 ms median). Cold timings were 80.1 ms
+  and 1.30 s respectively. The committed JSON is the source of truth for unrounded values.
+- Kept the table explicitly device-labeled and declined to call it a same-accelerator comparison.
+  Future JAX Metal, sparse-topology, or custom-Metal-kernel work must add a separately reproducible
+  result rather than overwrite this baseline.

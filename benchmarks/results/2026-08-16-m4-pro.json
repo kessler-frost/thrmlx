@@ -1,0 +1,69 @@
+{
+  "adapters": {
+    "thrml": {
+      "device": "cpu",
+      "timing": {
+        "cold_elapsed_seconds": 1.297752375015989,
+        "cold_recorded_states_per_second": 25249.809309419514,
+        "warm_elapsed_seconds": [
+          0.5325142082292587,
+          0.5399769579526037,
+          0.5328534170985222,
+          0.5327789578586817,
+          0.5302938751410693,
+          0.5313792498782277,
+          0.5422548749484122
+        ],
+        "warm_median_elapsed_seconds": 0.5327789578586817,
+        "warm_recorded_states_per_second": 61503.93050750258
+      }
+    },
+    "thrmlx": {
+      "device": "gpu",
+      "timing": {
+        "cold_elapsed_seconds": 0.08007241692394018,
+        "cold_recorded_states_per_second": 409229.5606753812,
+        "warm_elapsed_seconds": [
+          0.008964124834164977,
+          0.010105916997417808,
+          0.008891667006537318,
+          0.008917707949876785,
+          0.010012540966272354,
+          0.008888291893526912,
+          0.008940875064581633
+        ],
+        "warm_median_elapsed_seconds": 0.008940875064581633,
+        "warm_recorded_states_per_second": 3664965.6508239447
+      }
+    }
+  },
+  "comparison_note": "This is an Apple-Silicon local-use comparison: MLX runs on Metal GPU while upstream THRML runs through JAX's CPU backend. It is not a same-accelerator framework benchmark.",
+  "host": {
+    "machine": "arm64",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "processor": "arm",
+    "python": "3.12.12 (main, Feb 12 2026, 00:42:34) [Clang 21.1.4 ]"
+  },
+  "schema_version": 1,
+  "software": {
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "mlx": "0.32.0",
+    "thrml": "0.1.4",
+    "thrml_commit": "9c4e6fbb800f5e5c627122e668ff1b158ef3782b"
+  },
+  "timestamp_utc": "2026-08-16T07:56:50.761289+00:00",
+  "workload": {
+    "beta": 1.0,
+    "chains": 1024,
+    "edge_count": 16384,
+    "n_latent": 128,
+    "n_spins": 256,
+    "n_visible": 128,
+    "recorded_states": 32768,
+    "samples": 32,
+    "sweeps_per_sample": 1,
+    "warm_repetitions": 7,
+    "warmup": 20
+  }
+}

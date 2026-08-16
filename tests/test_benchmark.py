@@ -1,24 +1,10 @@
 import json
 from importlib import import_module
-from importlib.metadata import version
 
 import mlx.core as mx
 import pytest
 
-from benchmarks import dense_sampling
 from benchmarks.contract import BenchmarkConfig, expanded_couplings, measure, workload
-
-
-def test_dense_benchmark_reports_installed_mlx_version(
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    dense_sampling.main()
-
-    captured = capsys.readouterr()
-    result = json.loads(captured.out)
-    assert result["mlx_version"] == version("mlx")
-    assert result["cold_recorded_samples_per_second"] > 0
-    assert result["warm_recorded_samples_per_second"] > 0
 
 
 def test_primary_workload_expands_every_bipartite_edge_without_intrablock_edges() -> None:
