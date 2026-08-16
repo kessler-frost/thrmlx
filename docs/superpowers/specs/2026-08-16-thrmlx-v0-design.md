@@ -233,7 +233,7 @@ distribution and parity tests remain green.
 - Distribution and import name: `thrmlx`.
 - Python: `>=3.10`.
 - Runtime dependency: `mlx>=0.32,<0.33`.
-- Build backend: `uv_build>=0.11.32,<0.12`.
+- Build backend: `uv_build>=0.12.5,<0.13`.
 - Development tools: uv, pytest, pytest-xdist, Ruff, and ty.
 - License: Apache-2.0.
 - Provenance: `THIRD_PARTY_NOTICES.md` records the THRML behavioral reference and pinned commit.

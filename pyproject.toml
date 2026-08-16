@@ -1,0 +1,47 @@
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"
+
+[project]
+name = "thrmlx"
+version = "0.1.0"
+description = "MLX-native Ising-model sampling for local Apple Silicon"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+keywords = ["mlx", "ising", "gibbs-sampling", "energy-based-models", "apple-silicon"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: MacOS :: MacOS X",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = ["mlx>=0.32,<0.33"]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1,<10",
+  "pytest-xdist>=3.8,<4",
+  "ruff>=0.16.3,<0.17",
+  "ty>=0.0.72,<0.1",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ty.environment]
+python-version = "3.10"
+
+[tool.uv.build-backend]
+module-name = "thrmlx"
+module-root = "src"
