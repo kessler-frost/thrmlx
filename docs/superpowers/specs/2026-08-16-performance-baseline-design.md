@@ -70,8 +70,9 @@ The benchmark reports two non-interchangeable timing modes:
    elapsed values.
 
 The benchmark never mixes cold and warm values, times lazy scheduling without materializing the
-result, or reports a best-of-many run as its headline. It records only sampling work: reporting,
-JSON serialization, and runner construction after the cold measurement occur outside timed windows.
+result, or reports a best-of-many run as its headline. It records only sampling work: cold timing
+includes runner construction, while reporting, JSON serialization, and warm-runner construction
+occur outside timed windows.
 
 ## Results and provenance
 

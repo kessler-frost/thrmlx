@@ -20,7 +20,9 @@ to `9c4e6fbb800f5e5c627122e668ff1b158ef3782b`, NumPy, uv, pytest, Ruff, ty.
 
 ## Global Constraints
 
-- Benchmark dependency group only: do not add JAX, THRML, Equinox, or NumPy to runtime dependencies.
+- Do not add JAX, THRML, Equinox, or NumPy to runtime dependencies. NumPy belongs in the development
+  group because the framework-neutral workload contract is tested without benchmark runtimes; JAX,
+  THRML, and Equinox remain benchmark-only.
 - Pin THRML by its public Git commit; `uv.lock` records every resolved wheel/version.
 - Keep JAX results labeled `CPU` unless the actual report proves an Apple Metal device; never compare
   the two rows as identical-accelerator benchmarks.
@@ -57,7 +59,7 @@ to `9c4e6fbb800f5e5c627122e668ff1b158ef3782b`, NumPy, uv, pytest, Ruff, ty.
 - `expanded_couplings(workload)` returns a symmetric `(256, 256)` `float32` matrix with zero
   diagonal and the exact bipartite weights in both off-diagonal quadrants.
 
-- [ ] **Step 1: Write the failing contract tests**
+- [x] **Step 1: Write the failing contract tests**
 
 ```python
 from benchmarks.contract import BenchmarkConfig, expanded_couplings, workload
@@ -83,15 +85,15 @@ def test_primary_config_describes_the_published_work_unit() -> None:
     )
 ```
 
-- [ ] **Step 2: Run the contract tests and verify red**
+- [x] **Step 2: Run the contract tests and verify red**
 
 Run: `uv run pytest tests/test_benchmark.py -q`
 
 Expected: FAIL with `ModuleNotFoundError: No module named 'benchmarks.contract'`.
 
-- [ ] **Step 3: Add benchmark-only dependencies and implementation**
+- [x] **Step 3: Add benchmark-only dependencies and implementation**
 
-Add a `benchmark` dependency group with `jax>=0.4`, `numpy>=2,<3`, and
+Add NumPy to the `dev` group and a `benchmark` dependency group with `jax>=0.4` and
 `thrml @ git+https://github.com/extropic-ai/thrml@9c4e6fbb800f5e5c627122e668ff1b158ef3782b`.
 Run `uv lock`, then create the contract module using a locally seeded NumPy `Generator`, bounded
 float32 fields/weights, and direct block tuples. Build the coupling expansion by filling only the
@@ -119,7 +121,7 @@ Change normal developer/CI setup from `--all-groups` to `--group dev`; reserve
 commands. Verify the locked THRML source revision with `uv tree --group benchmark` and direct
 content search of `uv.lock`.
 
-- [ ] **Step 4: Run the focused contract tests and checks**
+- [x] **Step 4: Run the focused contract tests and checks**
 
 Run: `uv run --group benchmark pytest tests/test_benchmark.py -q`
 
@@ -130,7 +132,7 @@ uv run --group benchmark ruff format --check benchmarks tests/test_benchmark.py
 uv run --group benchmark ruff check benchmarks tests/test_benchmark.py
 ```
 
-- [ ] **Step 5: Commit the boundary and contract**
+- [x] **Step 5: Commit the boundary and contract**
 
 ```bash
 git add pyproject.toml uv.lock benchmarks/__init__.py benchmarks/contract.py \
@@ -395,4 +397,3 @@ git push origin main
 
 Verify `git status --short --branch` is clean and `gh api repos/kessler-frost/thrmlx/commits/main
 --jq .sha` matches `git rev-parse HEAD`.
-

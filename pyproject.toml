@@ -25,7 +25,12 @@ dependencies = ["mlx>=0.32,<0.33"]
 cpu = ["mlx[cpu]>=0.32,<0.33; sys_platform == 'linux'"]
 
 [dependency-groups]
+benchmark = [
+    "jax>=0.4",
+    "thrml",
+]
 dev = [
+  "numpy>=2,<3",
   "pytest>=9.1,<10",
   "pytest-xdist>=3.8,<4",
   "ruff>=0.16.3,<0.17",
@@ -49,3 +54,6 @@ python-version = "3.10"
 [tool.uv.build-backend]
 module-name = "thrmlx"
 module-root = "src"
+
+[tool.uv.sources]
+thrml = { git = "https://github.com/extropic-ai/thrml", rev = "9c4e6fbb800f5e5c627122e668ff1b158ef3782b" }

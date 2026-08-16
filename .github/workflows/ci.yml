@@ -23,15 +23,15 @@ jobs:
       - name: Install Python
         run: uv python install 3.10
       - name: Sync Linux CPU environment
-        run: uv sync --python 3.10 --frozen --all-groups --extra cpu
+        run: uv sync --python 3.10 --frozen --group dev --extra cpu
       - name: Run tests
-        run: uv run --frozen --python 3.10 --extra cpu pytest -q
+        run: uv run --frozen --python 3.10 --group dev --extra cpu pytest -q
       - name: Check formatting
-        run: uv run --frozen --python 3.10 --extra cpu ruff format --check .
+        run: uv run --frozen --python 3.10 --group dev --extra cpu ruff format --check .
       - name: Lint
-        run: uv run --frozen --python 3.10 --extra cpu ruff check .
+        run: uv run --frozen --python 3.10 --group dev --extra cpu ruff check .
       - name: Type check
-        run: uv run --frozen --python 3.10 --extra cpu ty check src
+        run: uv run --frozen --python 3.10 --group dev --extra cpu ty check src
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel with Linux CPU MLX
@@ -51,17 +51,17 @@ jobs:
       - name: Install Python
         run: uv python install 3.12
       - name: Sync environment
-        run: uv sync --frozen --all-groups
+        run: uv sync --frozen --group dev
       - name: Run tests
-        run: uv run pytest -q
+        run: uv run --frozen --group dev pytest -q
       - name: Check formatting
-        run: uv run ruff format --check .
+        run: uv run --frozen --group dev ruff format --check .
       - name: Lint
-        run: uv run ruff check .
+        run: uv run --frozen --group dev ruff check .
       - name: Type check
-        run: uv run ty check src
+        run: uv run --frozen --group dev ty check src
       - name: Run example
-        run: uv run python examples/two_spin.py
+        run: uv run --frozen --group dev python examples/two_spin.py
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel
