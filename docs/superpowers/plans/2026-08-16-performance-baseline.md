@@ -151,16 +151,19 @@ git commit -m "chore: add benchmark dependency group"
 **Interfaces:**
 
 - Consumes `BenchmarkWorkload`, `BenchmarkConfig`, and `expanded_couplings`.
-- Produces `make_runner(model, config) -> Callable[[int], None]` from each runner module. Each
+- Produces `make_runner(model, config) -> Callable[[int], object]` from each runner module. Each
   callable constructs its native key from a seed, runs one full request, materializes the trace,
-  validates `bool` and `(chains, samples, n_spins)`, and returns `None` so host transfer/validation
-  is definitely inside the timed function.
+  validates `bool` and `(chains, samples, n_spins)`, and returns that already materialized native
+  trace so tests can inspect the real backend result without moving host transfer out of the timer.
 - THRML runner uses only public imports: `Block`, `SamplingSchedule`, `SpinNode`, `sample_states`,
   `IsingEBM`, `IsingSamplingProgram`, and `hinton_init`.
 
-- [ ] **Step 1: Write failing runner smoke tests**
+- [x] **Step 1: Write failing runner smoke tests**
 
 ```python
+import jax.numpy as jnp
+import mlx.core as mx
+
 from benchmarks.contract import BenchmarkConfig, BenchmarkWorkload, workload
 from benchmarks.thrmlx_runner import make_runner as make_mlx_runner
 from benchmarks.thrml_runner import make_runner as make_thrml_runner
@@ -175,21 +178,25 @@ def _small_workload() -> BenchmarkWorkload:
 
 
 def test_thrmlx_runner_materializes_one_complete_boolean_trace() -> None:
-    assert make_mlx_runner(_small_workload(), _smoke_config())(0) is None
+    trace = make_mlx_runner(_small_workload(), _smoke_config())(0)
+    assert trace.shape == (8, 3, 5)
+    assert trace.dtype == mx.bool_
 
 
 def test_thrml_runner_materializes_one_complete_boolean_trace() -> None:
-    assert make_thrml_runner(_small_workload(), _smoke_config())(0) is None
+    trace = make_thrml_runner(_small_workload(), _smoke_config())(0)
+    assert trace.shape == (8, 3, 5)
+    assert trace.dtype == jnp.bool_
 ```
 
-- [ ] **Step 2: Run the runner tests and verify red**
+- [x] **Step 2: Run the runner tests and verify red**
 
 Run: `uv run --group benchmark pytest tests/test_benchmark.py -q`
 
 Expected: FAIL with module import errors for `benchmarks.thrmlx_runner` and
 `benchmarks.thrml_runner`.
 
-- [ ] **Step 3: Implement the MLX runner**
+- [x] **Step 3: Implement the MLX runner**
 
 Build one `thrmlx.Ising` from the expanded coupling matrix and declared blocks, and one
 `thrmlx.SamplingSchedule` from the config. The returned callable must invoke the public `sample`
@@ -203,16 +210,17 @@ def make_runner(model: BenchmarkWorkload, config: BenchmarkConfig) -> Callable[[
         warmup=config.warmup, samples=config.samples, sweeps_per_sample=config.sweeps_per_sample
     )
 
-    def run(seed: int) -> None:
+    def run(seed: int) -> mx.array:
         trace = sample(mx.random.key(seed), ising, schedule, chains=config.chains)
         mx.eval(trace)
         assert trace.dtype == mx.bool_
         assert trace.shape == (config.chains, config.samples, model.n_spins)
+        return trace
 
     return run
 ```
 
-- [ ] **Step 4: Implement the upstream THRML runner**
+- [x] **Step 4: Implement the upstream THRML runner**
 
 Create a stable list of `SpinNode` objects; create every visible-to-latent edge in row-major order;
 flatten `edge_weights` in exactly that order; make two `Block`s; and capture a constructed
@@ -225,7 +233,7 @@ Use the imported THRML schedule names (`n_warmup`, `n_samples`, `steps_per_sampl
 adapting the library's user-facing naming into a second API. Do not add a JAX implementation to the
 `thrmlx` package.
 
-- [ ] **Step 5: Run focused tests and record the actual JAX backend**
+- [x] **Step 5: Run focused tests and record the actual JAX backend**
 
 Run:
 
@@ -236,7 +244,7 @@ uv run --group benchmark python -c 'import jax; print(jax.default_backend()); pr
 
 Expected: both runner tests PASS; baseline macOS JAX output identifies `cpu`.
 
-- [ ] **Step 6: Commit the adapters**
+- [x] **Step 6: Commit the adapters**
 
 ```bash
 git add benchmarks/thrmlx_runner.py benchmarks/thrml_runner.py tests/test_benchmark.py

@@ -1,6 +1,8 @@
 import json
+from importlib import import_module
 from importlib.metadata import version
 
+import mlx.core as mx
 import pytest
 
 from benchmarks import dense_sampling
@@ -41,3 +43,27 @@ def test_primary_config_defines_a_fixed_32k_recorded_state_work_unit() -> None:
     assert config.chains * config.samples == 32_768
     assert config.warmup + (config.samples - 1) * config.sweeps_per_sample == 51
     assert config.warm_repetitions == 7
+
+
+def test_thrmlx_runner_materializes_one_complete_boolean_trace() -> None:
+    pytest.importorskip("thrml")
+    runner_module = import_module("benchmarks.thrmlx_runner")
+    model = workload(n_visible=3, n_latent=2)
+    config = BenchmarkConfig(chains=8, warmup=2, samples=3, sweeps_per_sample=1, warm_repetitions=2)
+
+    trace = runner_module.make_runner(model, config)(0)
+
+    assert trace.shape == (8, 3, 5)
+    assert trace.dtype == mx.bool_
+
+
+def test_thrml_runner_materializes_one_complete_boolean_trace() -> None:
+    pytest.importorskip("thrml")
+    runner_module = import_module("benchmarks.thrml_runner")
+    model = workload(n_visible=3, n_latent=2)
+    config = BenchmarkConfig(chains=8, warmup=2, samples=3, sweeps_per_sample=1, warm_repetitions=2)
+
+    trace = runner_module.make_runner(model, config)(0)
+
+    assert trace.shape == (8, 3, 5)
+    assert str(trace.dtype) == "bool"
