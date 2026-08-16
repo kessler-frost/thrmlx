@@ -31,6 +31,13 @@ objective is represented in [tests/upstream_parity/manifest.json](tests/upstream
 An objective is only described as compatible after its MLX-translated test is
 green.
 
+The pinned suite's MNIST test depends on approximately 30 MB of upstream
+NumPy fixtures and JAX/Optax training code. Its MLX translation is a
+deterministic compact fixture with the same 28-by-28 binary-image shape,
+visible labels, contrastive update, and classification acceptance check. The
+exact upstream dataset and optimizer implementation are intentionally not
+vendored; this divergence is documented in the test and project log.
+
 ## Attribution and source policy
 
 THRML is Apache-2.0 licensed. Files copied verbatim from THRML retain their

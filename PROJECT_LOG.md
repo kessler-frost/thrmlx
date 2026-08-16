@@ -1,5 +1,19 @@
 # Project log
 
+## 2026-08-16 — Observer, Ising, and fixture parity
+
+- Ported observers and the source-style Ising API: `StateObserver`, mixed-value moment
+  accumulation, observation-aware sampling, sparse-edge `IsingEBM`, `IsingSamplingProgram`,
+  Hinton initialization, sampled first/second moments, and two-phase contrastive gradients.
+- Added the executable THRML-style Ising README example. It exercises the same public API covered
+  by the translated upstream quick-start objective.
+- Added a deterministic, compact 28-by-28 binary-image/two-label fixture that makes one
+  contrastive update and classifies the fixture at 100%. It preserves the upstream test's
+  end-to-end EBM-training intent while avoiding the upstream repository's 30 MB MNIST test-data
+  payload in this source-derived MLX repository.
+- The compatibility ledger is complete: all 60 pinned THRML v0.1.4 acceptance objectives have a
+  green MLX translation. This does not claim JAX transform or random-bitstream compatibility.
+
 ## 2026-08-16 — Discrete EBM parity
 
 - Ported the factorized discrete EBM layer: spin, categorical, and mixed factors lower into static
@@ -8,7 +22,7 @@
 - Translated and passed all 24 upstream discrete-EBM objectives: factor validation, interaction
   lowering, binary/categorical/mixed Boltzmann marginals, clamped triplets, ragged mixed updates,
   energies, equivalent representations, a mixed checkerboard grid, and a 1,024-node grid sweep.
-  Compatibility is now 52 green / 8 planned objectives.
+  Compatibility reached 52 green / 8 planned objectives at this milestone.
 - Added `examples/discrete_ebm.py`, a runnable THRML-style coupled spin/categorical sampling
   program. Benchmark rows for this newly green surface follow after the remaining API work and
   stable paired measurement harness are in place.

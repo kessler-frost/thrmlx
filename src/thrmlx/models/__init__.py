@@ -11,6 +11,14 @@ from thrmlx.models.discrete_ebm import (
     SquareDiscreteEBMFactor,
 )
 from thrmlx.models.ebm import AbstractEBM, EBMFactor, FactorizedEBM
+from thrmlx.models.ising import (
+    IsingEBM,
+    IsingSamplingProgram,
+    IsingTrainingSpec,
+    estimate_kl_grad,
+    estimate_moments,
+    hinton_init,
+)
 
 __all__ = [
     "AbstractEBM",
@@ -20,8 +28,14 @@ __all__ = [
     "DiscreteEBMInteraction",
     "EBMFactor",
     "FactorizedEBM",
+    "IsingEBM",
+    "IsingSamplingProgram",
+    "IsingTrainingSpec",
     "SpinEBMFactor",
     "SpinGibbsConditional",
     "SquareCategoricalEBMFactor",
     "SquareDiscreteEBMFactor",
+    "estimate_kl_grad",
+    "estimate_moments",
+    "hinton_init",
 ]

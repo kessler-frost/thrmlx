@@ -12,12 +12,12 @@ backend.
 > thrmlx is an independent, unofficial, source-derived port. It is not affiliated with, sponsored
 > by, or endorsed by Extropic.
 
-The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. The
-block-state, generic sampling, factor, interaction, and discrete-EBM layers have **52 / 60
-translated objectives green**, so this is not yet full THRML parity. The current Ising adapter and
-compatible THRML-style node/block/program/factor layers now cover spin, categorical, mixed, and
-checkerboard discrete EBMs. Observers, Ising learning, the README objective, and the MNIST fixture
-remain in ledger order. See [UPSTREAM.md](UPSTREAM.md).
+The source compatibility ledger tracks all 60 tests collected from THRML v0.1.4, and **60 / 60
+MLX translations are green**. The port covers THRML-style nodes, blocks, generic samplers,
+factorized spin/categorical/mixed EBMs, observers, Ising wrappers, sampled moments, contrastive
+gradients, the quick-start example, and a compact MNIST-shaped end-to-end fixture. This is semantic
+source compatibility, not JAX/Equinox transformation or random-bitstream compatibility; see
+[UPSTREAM.md](UPSTREAM.md).
 
 ## Preliminary Ising-only Apple-Silicon baseline
 
@@ -52,6 +52,7 @@ uv run --frozen --group dev python examples/two_spin.py
 uv run --frozen --group dev python examples/generic_block_sampling.py
 uv run --frozen --group dev python examples/factor_sampling.py
 uv run --frozen --group dev python examples/discrete_ebm.py
+uv run --frozen --group dev python examples/thrml_ising.py
 ```
 
 Undo the project-local setup with:
@@ -81,6 +82,39 @@ trace = sample(
 
 `trace` is a boolean MLX array with shape `(4096, 4, 2)`. Both the chain and sample axes stay
 present when their size is one.
+
+### THRML-style Ising program
+
+The source-style node/block program API is available when its graph representation is a better fit:
+
+```python
+import mlx.core as mx
+
+from thrmlx import Block, SamplingSchedule, SpinNode, sample_states
+from thrmlx.models import IsingEBM, IsingSamplingProgram, hinton_init
+
+nodes = [SpinNode() for _ in range(5)]
+edges = [(nodes[i], nodes[i + 1]) for i in range(4)]
+model = IsingEBM(
+    nodes,
+    edges,
+    mx.zeros((5,), dtype=mx.float32),
+    mx.full((4,), 0.5, dtype=mx.float32),
+    mx.array(1.0, dtype=mx.float32),
+)
+free_blocks = [Block(nodes[::2]), Block(nodes[1::2])]
+program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])
+initial_key, sampling_key = mx.random.split(mx.random.key(0), 2)
+samples = sample_states(
+    sampling_key,
+    program,
+    SamplingSchedule(warmup=100, samples=1_000, sweeps_per_sample=2),
+    hinton_init(initial_key, model, free_blocks, ()),
+    [],
+    [Block(nodes)],
+)[0]
+assert samples.shape == (1_000, 5)
+```
 
 ## Semantics
 
@@ -165,12 +199,10 @@ does not turn a failed adapter into a partial comparison.
 
 ## Scope and roadmap
 
-The current compatibility work has completed node/block-state management, generic block sampling,
-factor contracts, and discrete EBM factors/conditionals. It proceeds through observers, Ising
-learning, the README objective, and the MNIST fixture. The benchmark matrix will cover the
-corresponding THRML workloads: line/grid Ising, bipartite RBM, categorical factors, mixed grids,
-clamped positive phase, moment observers, contrastive gradients, and the MNIST fixture. Results
-will identify the exact green upstream objectives they exercise.
+The source-compatibility implementation is complete. The benchmark matrix covers the corresponding
+THRML workloads: line/grid Ising, bipartite RBM, categorical factors, mixed grids, clamped positive
+phase, moment observers, contrastive gradients, and the MNIST fixture. Every result identifies the
+green upstream objectives it exercises, its accelerator, and whether the JAX comparison is CPU-only.
 
 ## License and provenance
 

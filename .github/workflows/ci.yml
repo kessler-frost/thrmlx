@@ -74,6 +74,10 @@ jobs:
         run: uv run --frozen --group dev python examples/factor_sampling.py
       - name: Run THRML-style discrete EBM example
         run: uv run --frozen --group dev python examples/discrete_ebm.py
+      - name: Run THRML-style Ising example
+        run: uv run --frozen --group dev python examples/thrml_ising.py
+      - name: Run compact MNIST-shaped training fixture
+        run: uv run --frozen --group dev python examples/train_mnist_fixture.py
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel

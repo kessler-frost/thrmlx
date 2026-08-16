@@ -16,11 +16,11 @@ from thrmlx.block_management import (
     StateSpec,
     _take_state,
     block_state_to_global,
-    from_global_state,
     verify_block_state,
 )
 from thrmlx.conditional_samplers import AbstractConditionalSampler
 from thrmlx.interaction import Interaction, InteractionGroup
+from thrmlx.observers import AbstractObserver, StateObserver
 from thrmlx.pgm import DEFAULT_NODE_SHAPE_DTYPES, AbstractNode
 from thrmlx.schedule import SamplingSchedule
 
@@ -285,22 +285,49 @@ def _stack_recorded_states(states: Sequence[State]) -> State:
     }
 
 
-def sample_states(
+def _stack_observations(observations: Sequence[object]) -> object:
+    first = observations[0]
+    if first is None:
+        return None
+    if isinstance(first, mx.array):
+        return mx.stack(cast(Sequence[mx.array], observations), axis=0)
+    if isinstance(first, tuple):
+        tuple_observations = cast(Sequence[tuple[object, ...]], observations)
+        return tuple(
+            _stack_observations([observation[index] for observation in tuple_observations])
+            for index in range(len(first))
+        )
+    if isinstance(first, list):
+        list_observations = cast(Sequence[list[object]], observations)
+        return [
+            _stack_observations([observation[index] for observation in list_observations])
+            for index in range(len(first))
+        ]
+    if isinstance(first, dict):
+        dictionary_observations = cast(Sequence[dict[str, object]], observations)
+        return {
+            key: _stack_observations([observation[key] for observation in dictionary_observations])
+            for key in first
+        }
+    raise TypeError("observer outputs must be MLX arrays, containers, or None")
+
+
+def sample_with_observation(
     key: mx.array,
     program: BlockSamplingProgram,
     schedule: SamplingSchedule,
     state_free: Sequence[State],
     state_clamp: Sequence[State],
-    nodes_to_sample: Sequence[Block[AbstractNode]],
-) -> list[State]:
-    """Warm a generic Gibbs chain and record requested states on a sample axis."""
+    observation_carry_init: object,
+    observer: AbstractObserver,
+) -> tuple[object, object]:
+    """Run a Gibbs chain and record an observer after every scheduled sample."""
 
     free_state = list(state_free)
     sampler_states = [sampler.init() for sampler in program.samplers]
     n_sweeps = schedule.warmup + (schedule.samples - 1) * schedule.sweeps_per_sample
     keys = mx.random.split(key, max(1, n_sweeps))
     key_index = 0
-
     for _ in range(schedule.warmup):
         free_state, sampler_states = sample_blocks(
             keys[key_index],
@@ -311,17 +338,15 @@ def sample_states(
         )
         key_index += 1
 
-    recorded: list[list[State]] = [
-        [
-            from_global_state(
-                block_state_to_global(free_state + list(state_clamp), program.gibbs_spec),
-                program.gibbs_spec,
-                nodes_to_sample,
-            )[index]
-        ]
-        for index in range(len(nodes_to_sample))
-    ]
-    for _ in range(schedule.samples - 1):
+    carry, first_observation = observer(
+        program,
+        free_state,
+        state_clamp,
+        observation_carry_init,
+        0,
+    )
+    observations = [first_observation]
+    for iteration in range(1, schedule.samples):
         for _ in range(schedule.sweeps_per_sample):
             free_state, sampler_states = sample_blocks(
                 keys[key_index],
@@ -331,12 +356,35 @@ def sample_states(
                 sampler_states,
             )
             key_index += 1
-        current = from_global_state(
-            block_state_to_global(free_state + list(state_clamp), program.gibbs_spec),
-            program.gibbs_spec,
-            nodes_to_sample,
+        carry, observation = observer(
+            program,
+            free_state,
+            state_clamp,
+            carry,
+            iteration,
         )
-        for index, state in enumerate(current):
-            recorded[index].append(state)
+        observations.append(observation)
+    return carry, _stack_observations(observations)
 
-    return [_stack_recorded_states(states) for states in recorded]
+
+def sample_states(
+    key: mx.array,
+    program: BlockSamplingProgram,
+    schedule: SamplingSchedule,
+    state_free: Sequence[State],
+    state_clamp: Sequence[State],
+    nodes_to_sample: Sequence[Block[AbstractNode]],
+) -> list[State]:
+    """Warm a generic Gibbs chain and record requested states on a sample axis."""
+    _, observed = sample_with_observation(
+        key,
+        program,
+        schedule,
+        state_free,
+        state_clamp,
+        None,
+        StateObserver(nodes_to_sample),
+    )
+    if not isinstance(observed, list):
+        raise TypeError("state observer must return a list of states")
+    return cast(list[State], observed)

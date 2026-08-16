@@ -15,6 +15,7 @@ from thrmlx.block_sampling import (
     sample_blocks,
     sample_single_block,
     sample_states,
+    sample_with_observation,
 )
 from thrmlx.conditional_samplers import (
     AbstractConditionalSampler,
@@ -25,6 +26,15 @@ from thrmlx.conditional_samplers import (
 from thrmlx.factor import AbstractFactor, FactorSamplingProgram, WeightedFactor
 from thrmlx.interaction import InteractionGroup
 from thrmlx.model import Ising
+from thrmlx.models.ising import (
+    IsingEBM,
+    IsingSamplingProgram,
+    IsingTrainingSpec,
+    estimate_kl_grad,
+    estimate_moments,
+    hinton_init,
+)
+from thrmlx.observers import AbstractObserver, MomentAccumulatorObserver, StateObserver
 from thrmlx.pgm import (
     DEFAULT_NODE_SHAPE_DTYPES,
     AbstractNode,
@@ -42,6 +52,7 @@ __all__ = [
     "AbstractConditionalSampler",
     "AbstractFactor",
     "AbstractNode",
+    "AbstractObserver",
     "AbstractParametricConditionalSampler",
     "ArraySpec",
     "BernoulliConditional",
@@ -54,18 +65,27 @@ __all__ = [
     "FactorSamplingProgram",
     "InteractionGroup",
     "Ising",
+    "IsingEBM",
+    "IsingSamplingProgram",
+    "IsingTrainingSpec",
+    "MomentAccumulatorObserver",
     "SamplingSchedule",
     "SoftmaxConditional",
     "SpinNode",
+    "StateObserver",
     "WeightedFactor",
     "__version__",
     "block_state_to_global",
+    "estimate_kl_grad",
+    "estimate_moments",
     "from_global_state",
     "get_node_locations",
+    "hinton_init",
     "make_empty_block_state",
     "sample",
     "sample_blocks",
     "sample_single_block",
     "sample_states",
+    "sample_with_observation",
     "verify_block_state",
 ]
