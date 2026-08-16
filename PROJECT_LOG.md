@@ -34,3 +34,21 @@
 - Kept the table explicitly device-labeled and declined to call it a same-accelerator comparison.
   Future JAX Metal, sparse-topology, or custom-Metal-kernel work must add a separately reproducible
   result rather than overwrite this baseline.
+
+## 2026-08-16 — THRML MLX fork foundation
+
+- Reframed thrmlx as a source-derived THRML v0.1.4 port with an MLX backend and committed a
+  60-objective upstream compatibility ledger. The original JAX/Equinox tests cannot execute
+  unchanged against MLX, so the ledger maps each objective to a translated MLX test and makes
+  incomplete work visible.
+- Ported the fourteen upstream block-management objectives: identity-stable nodes, same-type
+  blocks, static global/block state locations, nested tuple/dictionary templates, allocation,
+  round trips, and state validation. The current status is 14 green / 46 planned; it is not a
+  full THRML parity claim.
+- Retained the existing MLX-native dense Ising adapter as a convenience layer. The next port
+  target is generic THRML block sampling; benchmark rows follow only when their corresponding
+  objective is green.
+- Probed JIT-enabled THRML on JAX Metal without disabling JIT. JAX Metal initialized on the M4
+  Pro, but the documented 0.4.30/0.4.35 compatibility pair lacked jax.tree.flatten_with_path used
+  by THRML; the newer 0.5.2/0.1.1 pair failed with default_memory_space unsupported. No JAX-Metal
+  performance row is published.

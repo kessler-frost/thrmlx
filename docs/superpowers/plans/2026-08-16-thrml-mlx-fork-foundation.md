@@ -124,9 +124,16 @@ class ArraySpec:
     shape: tuple[int, ...]
     dtype: mx.Dtype
 
+
 class AbstractNode: ...
+
+
 class SpinNode(AbstractNode): ...
+
+
 class CategoricalNode(AbstractNode): ...
+
+
 class Block:
     def __init__(self, nodes: Sequence[AbstractNode]) -> None: ...
     @property
@@ -140,6 +147,7 @@ def test_upstream_testduplicate_duplicate_rejects_a_node_in_two_blocks() -> None
     node = SpinNode()
     with pytest.raises(ValueError, match="twice"):
         BlockSpec([Block([node]), Block([node])], DEFAULT_NODE_SHAPE_DTYPES)
+
 
 def test_block_rejects_mixed_concrete_node_types() -> None:
     with pytest.raises(ValueError, match="same type"):
@@ -179,13 +187,27 @@ git commit -m "feat: add THRML-compatible nodes and blocks"
 
 ~~~python
 class BlockSpec:
-    def __init__(self, blocks: Sequence[Block], node_shape_dtypes: Mapping[type[AbstractNode], StateSpec]) -> None: ...
+    def __init__(
+        self, blocks: Sequence[Block], node_shape_dtypes: Mapping[type[AbstractNode], StateSpec]
+    ) -> None: ...
 
-def make_empty_block_state(blocks: Sequence[Block], node_shape_dtypes: Mapping[type[AbstractNode], StateSpec], batch_shape: tuple[int, ...] = ()) -> list[State]: ...
+
+def make_empty_block_state(
+    blocks: Sequence[Block],
+    node_shape_dtypes: Mapping[type[AbstractNode], StateSpec],
+    batch_shape: tuple[int, ...] = (),
+) -> list[State]: ...
 def block_state_to_global(block_state: Sequence[State], spec: BlockSpec) -> list[State]: ...
-def from_global_state(global_state: Sequence[State], spec: BlockSpec, blocks: Sequence[Block]) -> list[State]: ...
+def from_global_state(
+    global_state: Sequence[State], spec: BlockSpec, blocks: Sequence[Block]
+) -> list[State]: ...
 def get_node_locations(block: Block, spec: BlockSpec) -> tuple[int, mx.array]: ...
-def verify_block_state(blocks: Sequence[Block], states: Sequence[State], node_shape_dtypes: Mapping[type[AbstractNode], StateSpec], block_axis: int | None = None) -> None: ...
+def verify_block_state(
+    blocks: Sequence[Block],
+    states: Sequence[State],
+    node_shape_dtypes: Mapping[type[AbstractNode], StateSpec],
+    block_axis: int | None = None,
+) -> None: ...
 ~~~
 
 StateSpec is recursively ArraySpec, tuple, or a dictionary with string keys; State substitutes mx.array leaves.
@@ -197,11 +219,16 @@ def test_upstream_testblocks_shape_transforms_round_trips_nested_templates() -> 
     blocks, templates = mixed_blocks_and_specs()
     spec = BlockSpec(blocks, templates)
     block_state = make_empty_block_state(blocks, templates, batch_shape=(2,))
-    assert_state_equal(from_global_state(block_state_to_global(block_state, spec), spec, blocks), block_state)
+    assert_state_equal(
+        from_global_state(block_state_to_global(block_state, spec), spec, blocks), block_state
+    )
+
 
 def test_upstream_testblockcompat_bad_dtype_rejects_nested_array() -> None:
     with pytest.raises(TypeError, match="dtype"):
-        verify_block_state([Block([SpinNode()])], [mx.zeros((1,), dtype=mx.int32)], DEFAULT_NODE_SHAPE_DTYPES)
+        verify_block_state(
+            [Block([SpinNode()])], [mx.zeros((1,), dtype=mx.int32)], DEFAULT_NODE_SHAPE_DTYPES
+        )
 ~~~
 
 Use literal (2, 3, 2) shapes and dtypes in fixtures. These catch wrong slice placement and accidental dtype acceptance.
@@ -249,7 +276,9 @@ git commit -m "feat: port THRML block state management to MLX"
 
 ~~~python
 def test_parity_report_distinguishes_foundation_coverage_from_full_parity() -> None:
-    result = subprocess.run([sys.executable, "tools/parity_report.py"], text=True, capture_output=True, check=True)
+    result = subprocess.run(
+        [sys.executable, "tools/parity_report.py"], text=True, capture_output=True, check=True
+    )
     assert json.loads(result.stdout) == {"complete": False, "green": 14, "planned": 46, "total": 60}
 ~~~
 

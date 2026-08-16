@@ -100,7 +100,7 @@ def test_parity_report_summarizes_the_committed_ledger() -> None:
     assert returncode == 0, stderr
     assert json.loads(stdout) == {
         "complete": False,
-        "green": 0,
-        "planned": 60,
+        "green": 14,
+        "planned": 46,
         "total": 60,
     }

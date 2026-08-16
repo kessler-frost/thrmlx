@@ -12,10 +12,10 @@ backend.
 > thrmlx is an independent, unofficial, source-derived port. It is not affiliated with, sponsored
 > by, or endorsed by Extropic.
 
-The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. This
-initial state has **0 / 60 translated objectives green**, so it is not yet full THRML parity. The
-first shipping adapter remains dense Ising sampling while the node, factor, observer, and training
-surfaces are ported in ledger order. See [UPSTREAM.md](UPSTREAM.md).
+The source compatibility ledger currently tracks all 60 tests collected from THRML v0.1.4. The
+block-state foundation has **14 / 60 translated objectives green**, so this is not yet full THRML
+parity. The current Ising adapter and newly compatible node/block state layer are followed by
+generic sampling, factors, observers, and training in ledger order. See [UPSTREAM.md](UPSTREAM.md).
 
 ## Preliminary Ising-only Apple-Silicon baseline
 

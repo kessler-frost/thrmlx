@@ -26,6 +26,8 @@ jobs:
         run: uv sync --python 3.10 --frozen --group dev --extra cpu
       - name: Run tests
         run: uv run --frozen --python 3.10 --group dev --extra cpu pytest -q
+      - name: Report THRML compatibility status
+        run: uv run --frozen --python 3.10 --group dev --extra cpu python tools/parity_report.py
       - name: Check formatting
         run: uv run --frozen --python 3.10 --group dev --extra cpu ruff format --check .
       - name: Lint
@@ -54,6 +56,8 @@ jobs:
         run: uv sync --frozen --group dev
       - name: Run tests
         run: uv run --frozen --group dev pytest -q
+      - name: Report THRML compatibility status
+        run: uv run --frozen --group dev python tools/parity_report.py
       - name: Check formatting
         run: uv run --frozen --group dev ruff format --check .
       - name: Lint
@@ -62,6 +66,8 @@ jobs:
         run: uv run --frozen --group dev ty check src
       - name: Run example
         run: uv run --frozen --group dev python examples/two_spin.py
+      - name: Run THRML-style block-state example
+        run: uv run --frozen --group dev python examples/block_state_round_trip.py
       - name: Build distributions
         run: uv build
       - name: Smoke-test wheel
