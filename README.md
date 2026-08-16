@@ -3,127 +3,36 @@
 [![CI](https://github.com/kessler-frost/thrmlx/actions/workflows/ci.yml/badge.svg)](https://github.com/kessler-frost/thrmlx/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-thrmlx is a source-derived [THRML](https://github.com/extropic-ai/thrml) port with an MLX backend
-for fast local Apple-Silicon execution. The target is THRML's model-building, block-Gibbs sampling,
-observation, and contrastive-learning use cases, implemented with MLX instead of THRML's JAX/Equinox
-backend.
+An MLX backend port of [THRML](https://github.com/extropic-ai/thrml) for fast local Apple-Silicon
+execution. It keeps THRML's model-building, block-Gibbs sampling, observation, and
+contrastive-learning surface, replacing JAX/Equinox with MLX.
 
-> [!IMPORTANT]
-> thrmlx is an independent, unofficial, source-derived port. It is not affiliated with, sponsored
-> by, or endorsed by Extropic.
+> [!NOTE]
+> Independent, unofficial source-derived port; not affiliated with or endorsed by Extropic.
 
-The source compatibility ledger tracks all 60 tests collected from THRML v0.1.4, and **60 / 60
-MLX translations are green**. The port covers THRML-style nodes, blocks, generic samplers,
-factorized spin/categorical/mixed EBMs, observers, Ising wrappers, sampled moments, contrastive
-gradients, the quick-start example, and a compact MNIST-shaped end-to-end fixture. This is semantic
-source compatibility, not JAX/Equinox transformation or random-bitstream compatibility; see
-[UPSTREAM.md](UPSTREAM.md).
+**THRML v0.1.4 API · 60/60 translated objectives green · Apache-2.0**
 
-## Use as a THRML replacement
-
-Install the public repository directly with uv:
+## Install and migrate
 
 ```bash
 uv add "thrmlx @ git+https://github.com/kessler-frost/thrmlx.git"
 ```
 
-Use the same THRML public API beneath the renamed `thrmlx` root:
+Replace the package root in THRML code:
 
 ```diff
--import thrml
+-from thrml import Block, SamplingSchedule, SpinNode, sample_states
 -from thrml.models import IsingEBM, IsingSamplingProgram
-+import thrmlx
++from thrmlx import Block, SamplingSchedule, SpinNode, sample_states
 +from thrmlx.models import IsingEBM, IsingSamplingProgram
 ```
 
-The complete pinned THRML 0.1.4 root API, `models` API, and public submodule paths are available
-from `thrmlx`, including THRML's original argument names such as
-`SamplingSchedule(n_warmup=..., n_samples=..., steps_per_sample=...)` and
-`BlockGibbsSpec(free_super_blocks=...)`. The compatibility contract is regression-tested against
-every pinned public export and 60 translated upstream objectives.
+`thrmlx` exports the pinned THRML root, `models`, and public submodule API, including original
+argument names such as `SamplingSchedule(n_warmup=..., n_samples=..., steps_per_sample=...)`.
+Use `mlx.core` arrays and `mx.random.key` in place of JAX arrays and keys. JAX/Equinox transforms
+(`jit`, `vmap`, `grad`, PyTrees) are intentionally not emulated.
 
-| Migration boundary | Compatibility |
-| --- | --- |
-| `thrml` package root and public submodules | Replace the root with `thrmlx` |
-| THRML models, factors, samplers, observers, blocks, and training helpers | Public names and source-style calls are supported |
-| Arrays and random keys | Use `mlx.core` arrays and `mx.random.key`, not `jax.numpy` / `jax.random` |
-| JAX / Equinox transformations | Not supported: migrate `jax.jit`, `jax.vmap`, `jax.grad`, and PyTree-specific code separately |
-
-This is deliberately a backend replacement, not a JAX compatibility shim: code that only uses the
-THRML object API changes its package root; code that directly calls JAX must change those calls to
-MLX as well. `thrmlx.THRML_COMPAT_VERSION` records the pinned upstream API version.
-
-## Apple-Silicon THRML source-use-case matrix
-
-Measured 2026-08-16 on an Apple M4 Pro / 48 GB Mac mini (macOS 26.5.2, Python 3.12.12), using
-MLX 0.32.0 on Metal and source-pinned THRML 0.1.4 at
-`9c4e6fbb800f5e5c627122e668ff1b158ef3782b` through JAX 0.11.0 CPU. Each row is a matched,
-materialized source-style workload with five warm repetitions; raw samples, devices, and linked
-upstream objectives are committed in [the result JSON](benchmarks/results/2026-08-16-m4-pro-source-matrix.json).
-
-| THRML use case | thrmlx / MLX Metal warm median | THRML / JAX CPU warm median | Speedup |
-| --- | ---: | ---: | ---: |
-| Batched bipartite Ising / RBM | 8.33 ms | 832.69 ms | 99.9× |
-| Sparse line Ising sampling | 73.99 ms | 265.68 ms | 3.6× |
-| Checkerboard grid Ising sampling | 105.93 ms | 292.76 ms | 2.8× |
-| Low-level spin-factor Gibbs program | 112.92 ms | 305.02 ms | 2.7× |
-| Categorical factor Gibbs program | 155.04 ms | 338.18 ms | 2.2× |
-| Mixed spin/categorical factor program | 97.53 ms | 385.20 ms | 3.9× |
-| Ising moment observer | 129.16 ms | 366.06 ms | 2.8× |
-| Semi-visible contrastive gradient | 243.37 ms | 704.30 ms | 2.9× |
-| MNIST-shaped contrastive update | 180.68 ms | 520.80 ms | 2.9× |
-
-This is a local Apple-Silicon outcome, not a same-accelerator framework comparison: MLX uses Metal
-while this upstream THRML installation runs through JAX CPU. A JIT-enabled THRML/JAX-Metal smoke
-program remains incompatible on this Mac, so no JAX-Metal throughput claim is published. The matrix
-is deliberately source-use-case-specific, not a general GPU or cloud-price comparison.
-
-## Quick start
-
-Requires Python 3.10+, uv, Apple Silicon, and macOS 14 or newer.
-
-```bash
-git clone https://github.com/kessler-frost/thrmlx.git
-cd thrmlx
-uv sync --frozen --group dev
-uv run --frozen --group dev python examples/two_spin.py
-uv run --frozen --group dev python examples/generic_block_sampling.py
-uv run --frozen --group dev python examples/factor_sampling.py
-uv run --frozen --group dev python examples/discrete_ebm.py
-uv run --frozen --group dev python examples/thrml_ising.py
-```
-
-Undo the project-local setup with:
-
-```bash
-python3 scripts/teardown.py
-```
-
-The same example as library code:
-
-```python
-import mlx.core as mx
-
-from thrmlx import Ising, SamplingSchedule, sample
-
-model = Ising(
-    fields=mx.array([0.0, 0.0]),
-    couplings=mx.array([[0.0, 0.8], [0.8, 0.0]]),
-)
-trace = sample(
-    mx.random.key(7),
-    model,
-    SamplingSchedule(warmup=200, samples=4),
-    chains=4096,
-)
-```
-
-`trace` is a boolean MLX array with shape `(4096, 4, 2)`. Both the chain and sample axes stay
-present when their size is one.
-
-### THRML-style Ising program
-
-The source-style node/block program API is available when its graph representation is a better fit:
+## THRML-style sampling
 
 ```python
 import mlx.core as mx
@@ -132,117 +41,58 @@ from thrmlx import Block, SamplingSchedule, SpinNode, sample_states
 from thrmlx.models import IsingEBM, IsingSamplingProgram, hinton_init
 
 nodes = [SpinNode() for _ in range(5)]
-edges = [(nodes[i], nodes[i + 1]) for i in range(4)]
-model = IsingEBM(
-    nodes,
-    edges,
-    mx.zeros((5,), dtype=mx.float32),
-    mx.full((4,), 0.5, dtype=mx.float32),
-    mx.array(1.0, dtype=mx.float32),
-)
+edges = list(zip(nodes, nodes[1:]))
+model = IsingEBM(nodes, edges, mx.zeros(5), mx.full(4, 0.5), mx.array(1.0))
 free_blocks = [Block(nodes[::2]), Block(nodes[1::2])]
 program = IsingSamplingProgram(model, free_blocks, clamped_blocks=[])
-initial_key, sampling_key = mx.random.split(mx.random.key(0), 2)
+init_key, sample_key = mx.random.split(mx.random.key(0), 2)
+
 samples = sample_states(
-    sampling_key,
+    sample_key,
     program,
-    SamplingSchedule(warmup=100, samples=1_000, sweeps_per_sample=2),
-    hinton_init(initial_key, model, free_blocks, ()),
+    SamplingSchedule(n_warmup=100, n_samples=1_000, steps_per_sample=2),
+    hinton_init(init_key, model, free_blocks, ()),
     [],
     [Block(nodes)],
 )[0]
 assert samples.shape == (1_000, 5)
 ```
 
-## Semantics
+See [examples](examples) for native dense Ising, generic factors, discrete EBMs, and the compact
+MNIST-shaped contrastive-learning fixture.
 
-Boolean states are canonical: `False = -1` and `True = +1`. For signed state `s`, fields `b`,
-symmetric zero-diagonal couplings `J`, and inverse temperature `beta`, `model.energy(state)` returns
-the reduced energy
+## Apple-Silicon benchmarks
 
-```text
--beta * (b @ s + 0.5 * s.T @ J @ s)
-```
+Fresh local measurement on an M4 Pro / 48 GB Mac mini: MLX 0.32 Metal versus source-pinned THRML
+0.1.4 through JAX CPU. These are five warm-repetition medians; they are **not** a same-accelerator
+comparison.
 
-The Gibbs conditional is `P(s_i = +1 | rest) = sigmoid(2 * beta * local_field_i)`.
+| Workload group | thrmlx / Metal | THRML / JAX CPU | Speedup |
+| --- | ---: | ---: | ---: |
+| Dense bipartite Ising / RBM | 8.3 ms | 832.7 ms | 99.9× |
+| Line and grid Ising sampling | 74.0–105.9 ms | 265.7–292.8 ms | 2.8–3.6× |
+| Spin, categorical, and mixed factors | 97.5–155.0 ms | 305.0–385.2 ms | 2.2–3.9× |
+| Moments and contrastive updates | 129.2–243.4 ms | 366.1–704.3 ms | 2.8–2.9× |
 
-When update blocks are omitted, `Ising` derives a deterministic first-fit coloring from nonzero
-couplings. A supplied coloring must partition every spin exactly once and cannot put coupled spins
-in the same block. Blocks update in declaration order; spins within one block update simultaneously.
-
-Schedule timing follows THRML: run `warmup` sweeps, record the first sample immediately, then run
-`sweeps_per_sample` sweeps before every later sample. Setting `sweeps_per_sample=0` intentionally
-records the same post-warmup state repeatedly.
-
-### Clamping
-
-```python
-from thrmlx import Clamp
-
-clamp = Clamp(
-    mask=mx.array([True, False]),
-    values=mx.array([True, False]),
-)
-trace = sample(
-    mx.random.key(8),
-    model,
-    SamplingSchedule(warmup=100, samples=10),
-    chains=1024,
-    clamp=clamp,
-)
-```
-
-A one-dimensional mask is shared by all chains. A `(chains, spins)` mask can fix different sites
-per chain. Values broadcast to the mask, override the initial state, and remain enforced after
-every block update.
-
-### Random keys
-
-`sample` requires one explicit MLX PRNG key and never reads or seeds MLX's implicit global random
-state. Reusing a key with the same inputs reproduces the same trace for a pinned MLX version and
-device. Split keys for independent calls:
-
-```python
-first_key, second_key = mx.random.split(mx.random.key(9), 2)
-```
-
-Bitwise compatibility across MLX versions, devices, or JAX is not promised.
-
-## Development and verification
-
-```bash
-uv run pytest -q
-uv run ruff format --check .
-uv run ruff check .
-uv run ty check src
-uv build
-```
-
-Linux CPU MLX is a secondary semantic-checking target. Set it up with
-`uv sync --frozen --group dev --extra cpu`; the same `python3 scripts/teardown.py` removes that
-environment.
-
-Reproduce the paired local benchmark with its optional, pinned THRML/JAX dependency group:
+The [full result JSON](benchmarks/results/2026-08-16-m4-pro-source-matrix.json) has every
+workload, raw repetitions, device labels, and mapped upstream objectives. Reproduce it with:
 
 ```bash
 uv sync --frozen --group benchmark
 uv run --frozen --group benchmark python -m benchmarks.source_matrix \
   --output benchmarks/results/local-source-matrix.json
-python3 scripts/teardown.py
 ```
 
-It emits JSON containing hardware/software provenance, cold time to first result, five materialized
-warm timings, source-objective links, and separate MLX/THRML devices. It intentionally does not
-turn a failed adapter into a partial comparison.
+## Develop
 
-## Scope and roadmap
+```bash
+uv sync --frozen --group dev
+uv run pytest -q
+uv run ruff format --check .
+uv run ruff check .
+uv run ty check src
+```
 
-The source-compatibility implementation is complete. The benchmark matrix covers the corresponding
-THRML workloads: line/grid Ising, bipartite RBM, categorical factors, mixed grids, clamped positive
-phase, moment observers, contrastive gradients, and the MNIST fixture. Every result identifies the
-green upstream objectives it exercises, its accelerator, and whether the JAX comparison is CPU-only.
-
-## License and provenance
-
-Apache-2.0. See [LICENSE](LICENSE), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
-[UPSTREAM.md](UPSTREAM.md).
+More detail: [upstream compatibility and boundaries](UPSTREAM.md), [project history](PROJECT_LOG.md),
+and [licensing/provenance](THIRD_PARTY_NOTICES.md). Run `python3 scripts/teardown.py` to remove the
+project-local environment.
