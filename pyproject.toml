@@ -9,6 +9,7 @@ description = "MLX-native Ising-model sampling for local Apple Silicon"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 keywords = ["mlx", "ising", "gibbs-sampling", "energy-based-models", "apple-silicon"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -19,6 +20,9 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = ["mlx>=0.32,<0.33"]
+
+[project.optional-dependencies]
+cpu = ["mlx[cpu]>=0.32,<0.33; sys_platform == 'linux'"]
 
 [dependency-groups]
 dev = [

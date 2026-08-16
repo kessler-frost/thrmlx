@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-quality:
+    name: Linux CPU quality
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.2"
+          enable-cache: true
+      - name: Install Python
+        run: uv python install 3.12
+      - name: Sync Linux CPU environment
+        run: uv sync --frozen --all-groups --extra cpu
+      - name: Run tests
+        run: uv run pytest -q
+      - name: Check formatting
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run ty check src
+
+  apple-silicon:
+    name: Apple Silicon correctness and package
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.2"
+          enable-cache: true
+      - name: Install Python
+        run: uv python install 3.12
+      - name: Sync environment
+        run: uv sync --frozen --all-groups
+      - name: Run tests
+        run: uv run pytest -q
+      - name: Run example
+        run: uv run python examples/two_spin.py
+      - name: Build distributions
+        run: uv build
+      - name: Smoke-test wheel
+        run: uv run --isolated --no-project --with ./dist/thrmlx-0.1.0-py3-none-any.whl python -c "import thrmlx; print(thrmlx.__version__)"

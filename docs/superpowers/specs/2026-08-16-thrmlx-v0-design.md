@@ -239,7 +239,7 @@ distribution and parity tests remain green.
 - Provenance: `THIRD_PARTY_NOTICES.md` records the THRML behavioral reference and pinned commit.
 - Branding: README states that the project is unofficial and is not affiliated with or endorsed
   by Extropic. Extropic logos and branding are excluded.
-- Setup documentation uses `uv sync --frozen`; `scripts/teardown.sh` removes only project-local
+- Setup documentation uses `uv sync --frozen`; `scripts/teardown.py` removes only project-local
   generated environments and caches.
 - CI runs unit, lint, type, build, and package-smoke checks on Linux CPU MLX and Apple-Silicon
   macOS. CI performance numbers are informational, never release gates.
