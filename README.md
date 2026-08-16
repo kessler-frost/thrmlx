@@ -19,6 +19,40 @@ gradients, the quick-start example, and a compact MNIST-shaped end-to-end fixtur
 source compatibility, not JAX/Equinox transformation or random-bitstream compatibility; see
 [UPSTREAM.md](UPSTREAM.md).
 
+## Use as a THRML replacement
+
+Install the public repository directly with uv:
+
+```bash
+uv add "thrmlx @ git+https://github.com/kessler-frost/thrmlx.git"
+```
+
+Use the same THRML public API beneath the renamed `thrmlx` root:
+
+```diff
+-import thrml
+-from thrml.models import IsingEBM, IsingSamplingProgram
++import thrmlx
++from thrmlx.models import IsingEBM, IsingSamplingProgram
+```
+
+The complete pinned THRML 0.1.4 root API, `models` API, and public submodule paths are available
+from `thrmlx`, including THRML's original argument names such as
+`SamplingSchedule(n_warmup=..., n_samples=..., steps_per_sample=...)` and
+`BlockGibbsSpec(free_super_blocks=...)`. The compatibility contract is regression-tested against
+every pinned public export and 60 translated upstream objectives.
+
+| Migration boundary | Compatibility |
+| --- | --- |
+| `thrml` package root and public submodules | Replace the root with `thrmlx` |
+| THRML models, factors, samplers, observers, blocks, and training helpers | Public names and source-style calls are supported |
+| Arrays and random keys | Use `mlx.core` arrays and `mx.random.key`, not `jax.numpy` / `jax.random` |
+| JAX / Equinox transformations | Not supported: migrate `jax.jit`, `jax.vmap`, `jax.grad`, and PyTree-specific code separately |
+
+This is deliberately a backend replacement, not a JAX compatibility shim: code that only uses the
+THRML object API changes its package root; code that directly calls JAX must change those calls to
+MLX as well. `thrmlx.THRML_COMPAT_VERSION` records the pinned upstream API version.
+
 ## Apple-Silicon THRML source-use-case matrix
 
 Measured 2026-08-16 on an Apple M4 Pro / 48 GB Mac mini (macOS 26.5.2, Python 3.12.12), using
@@ -29,15 +63,15 @@ upstream objectives are committed in [the result JSON](benchmarks/results/2026-0
 
 | THRML use case | thrmlx / MLX Metal warm median | THRML / JAX CPU warm median | Speedup |
 | --- | ---: | ---: | ---: |
-| Batched bipartite Ising / RBM | 8.27 ms | 492.31 ms | 59.5× |
-| Sparse line Ising sampling | 52.65 ms | 239.59 ms | 4.6× |
-| Checkerboard grid Ising sampling | 51.76 ms | 254.63 ms | 4.9× |
-| Low-level spin-factor Gibbs program | 53.63 ms | 249.40 ms | 4.7× |
-| Categorical factor Gibbs program | 86.93 ms | 332.35 ms | 3.8× |
-| Mixed spin/categorical factor program | 50.93 ms | 301.49 ms | 5.9× |
-| Ising moment observer | 65.95 ms | 227.28 ms | 3.4× |
-| Semi-visible contrastive gradient | 130.58 ms | 547.79 ms | 4.2× |
-| MNIST-shaped contrastive update | 94.39 ms | 420.46 ms | 4.5× |
+| Batched bipartite Ising / RBM | 8.33 ms | 832.69 ms | 99.9× |
+| Sparse line Ising sampling | 73.99 ms | 265.68 ms | 3.6× |
+| Checkerboard grid Ising sampling | 105.93 ms | 292.76 ms | 2.8× |
+| Low-level spin-factor Gibbs program | 112.92 ms | 305.02 ms | 2.7× |
+| Categorical factor Gibbs program | 155.04 ms | 338.18 ms | 2.2× |
+| Mixed spin/categorical factor program | 97.53 ms | 385.20 ms | 3.9× |
+| Ising moment observer | 129.16 ms | 366.06 ms | 2.8× |
+| Semi-visible contrastive gradient | 243.37 ms | 704.30 ms | 2.9× |
+| MNIST-shaped contrastive update | 180.68 ms | 520.80 ms | 2.9× |
 
 This is a local Apple-Silicon outcome, not a same-accelerator framework comparison: MLX uses Metal
 while this upstream THRML installation runs through JAX CPU. A JIT-enabled THRML/JAX-Metal smoke

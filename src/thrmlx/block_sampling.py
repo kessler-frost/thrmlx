@@ -40,7 +40,7 @@ class BlockGibbsSpec(BlockSpec):
 
     def __init__(
         self,
-        free_superblocks: Sequence[Block[AbstractNode] | Sequence[Block[AbstractNode]]],
+        free_super_blocks: Sequence[Block[AbstractNode] | Sequence[Block[AbstractNode]]],
         clamped_blocks: Sequence[Block[AbstractNode]],
         node_shape_dtypes: Mapping[type[AbstractNode], StateSpec] | None = None,
     ) -> None:
@@ -48,7 +48,7 @@ class BlockGibbsSpec(BlockSpec):
         superblocks: list[tuple[Block[AbstractNode], ...]] = []
         sampling_order: list[tuple[int, ...]] = []
 
-        for superblock in free_superblocks:
+        for superblock in free_super_blocks:
             blocks = (superblock,) if isinstance(superblock, Block) else tuple(superblock)
             if not blocks:
                 raise ValueError("a Gibbs superblock must contain at least one block")
@@ -249,38 +249,43 @@ def _sample_single_block(
 def sample_single_block(
     key: mx.array,
     state_free: Sequence[State],
-    state_clamp: Sequence[State],
+    clamp_state: Sequence[State],
     program: BlockSamplingProgram,
     block: int,
     sampler_state: object,
+    global_state: Sequence[State] | None = None,
 ) -> tuple[State, object]:
     """Sample one free block from the current free and clamped state."""
 
-    global_state = block_state_to_global(list(state_free) + list(state_clamp), program.gibbs_spec)
+    current_global_state = (
+        block_state_to_global(list(state_free) + list(clamp_state), program.gibbs_spec)
+        if global_state is None
+        else list(global_state)
+    )
     return _sample_single_block(
         key,
         state_free,
-        state_clamp,
+        clamp_state,
         program,
         block,
         sampler_state,
-        global_state,
+        current_global_state,
     )
 
 
 def sample_blocks(
     key: mx.array,
     state_free: Sequence[State],
-    state_clamp: Sequence[State],
+    clamp_state: Sequence[State],
     program: BlockSamplingProgram,
-    sampler_states: Sequence[object],
+    sampler_state: Sequence[object],
 ) -> tuple[list[State], list[object]]:
     """Perform one full ordered Gibbs sweep using only the supplied MLX key."""
 
-    if len(sampler_states) != len(program.gibbs_spec.free_blocks):
+    if len(sampler_state) != len(program.gibbs_spec.free_blocks):
         raise ValueError("number of sampler states must equal number of free blocks")
     free_state = list(state_free)
-    updated_sampler_states = list(sampler_states)
+    updated_sampler_states = list(sampler_state)
     verify_block_state(
         program.gibbs_spec.free_blocks,
         free_state,
@@ -289,19 +294,19 @@ def sample_blocks(
     )
     verify_block_state(
         program.gibbs_spec.clamped_blocks,
-        state_clamp,
+        clamp_state,
         program.gibbs_spec.node_shape_dtypes,
         block_axis=-1,
     )
 
     keys = mx.random.split(key, len(program.gibbs_spec.free_blocks))
     for block_indices in program.gibbs_spec.sampling_order:
-        global_state = block_state_to_global(free_state + list(state_clamp), program.gibbs_spec)
-        updates = {
+        global_state = block_state_to_global(free_state + list(clamp_state), program.gibbs_spec)
+        updates: dict[int, tuple[State, object]] = {
             block: _sample_single_block(
                 keys[block],
                 free_state,
-                state_clamp,
+                clamp_state,
                 program,
                 block,
                 updated_sampler_states[block],
@@ -309,9 +314,9 @@ def sample_blocks(
             )
             for block in block_indices
         }
-        for block, (state, sampler_state) in updates.items():
+        for block, (state, next_sampler_state) in updates.items():
             free_state[block] = state
-            updated_sampler_states[block] = sampler_state
+            updated_sampler_states[block] = next_sampler_state
     return free_state, updated_sampler_states
 
 
@@ -362,14 +367,14 @@ def sample_with_observation(
     key: mx.array,
     program: BlockSamplingProgram,
     schedule: SamplingSchedule,
-    state_free: Sequence[State],
+    init_chain_state: Sequence[State],
     state_clamp: Sequence[State],
     observation_carry_init: object,
-    observer: AbstractObserver,
+    f_observe: AbstractObserver,
 ) -> tuple[object, object]:
     """Run a Gibbs chain and record an observer after every scheduled sample."""
 
-    free_state = list(state_free)
+    free_state = list(init_chain_state)
     sampler_states = [sampler.init() for sampler in program.samplers]
     n_sweeps = schedule.warmup + (schedule.samples - 1) * schedule.sweeps_per_sample
     keys = mx.random.split(key, max(1, n_sweeps))
@@ -384,7 +389,7 @@ def sample_with_observation(
         )
         key_index += 1
 
-    carry, first_observation = observer(
+    carry, first_observation = f_observe(
         program,
         free_state,
         state_clamp,
@@ -402,7 +407,7 @@ def sample_with_observation(
                 sampler_states,
             )
             key_index += 1
-        carry, observation = observer(
+        carry, observation = f_observe(
             program,
             free_state,
             state_clamp,
@@ -417,7 +422,7 @@ def sample_states(
     key: mx.array,
     program: BlockSamplingProgram,
     schedule: SamplingSchedule,
-    state_free: Sequence[State],
+    init_state_free: Sequence[State],
     state_clamp: Sequence[State],
     nodes_to_sample: Sequence[Block[AbstractNode]],
 ) -> list[State]:
@@ -426,7 +431,7 @@ def sample_states(
         key,
         program,
         schedule,
-        state_free,
+        init_state_free,
         state_clamp,
         None,
         StateObserver(nodes_to_sample),

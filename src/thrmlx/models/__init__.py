@@ -10,7 +10,7 @@ from thrmlx.models.discrete_ebm import (
     SquareCategoricalEBMFactor,
     SquareDiscreteEBMFactor,
 )
-from thrmlx.models.ebm import AbstractEBM, EBMFactor, FactorizedEBM
+from thrmlx.models.ebm import AbstractEBM, AbstractFactorizedEBM, EBMFactor, FactorizedEBM
 from thrmlx.models.ising import (
     IsingEBM,
     IsingSamplingProgram,
@@ -22,6 +22,7 @@ from thrmlx.models.ising import (
 
 __all__ = [
     "AbstractEBM",
+    "AbstractFactorizedEBM",
     "CategoricalEBMFactor",
     "CategoricalGibbsConditional",
     "DiscreteEBMFactor",

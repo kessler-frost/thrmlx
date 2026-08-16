@@ -1,5 +1,22 @@
 # Project log
 
+## 2026-08-16 — Direct `thrmlx` THRML API compatibility
+
+- Made the pinned THRML v0.1.4 public surface directly available under the `thrmlx` root: root
+  exports, `thrmlx.models`, and all documented public module paths now retain THRML names while
+  using MLX arrays and explicit MLX keys.
+- Aligned upstream public keyword names for block specs, schedule construction, state extraction,
+  block sampling, scheduled sampling, and observer-driven sampling. `SamplingSchedule` also
+  retains the original MLX-native spellings as non-ambiguous aliases.
+- Added direct-import contract tests that validate every pinned public export and execute an
+  end-to-end source-style factor Gibbs program. The boundary intentionally excludes JAX/Equinox
+  transformations and random-bitstream identity; callers replace the package root and migrate
+  direct JAX calls to `mlx.core`.
+- Reran the complete nine-case source-workload matrix after the compatibility changes. The updated
+  five-repetition local result is 2.2×–99.9× MLX Metal versus the pinned THRML/JAX CPU adapter;
+  raw repetitions, hardware/software provenance, and device labels remain in the committed result
+  JSON rather than being reduced to a benchmark claim without context.
+
 ## 2026-08-16 — Complete source-use-case matrix and batched MLX execution
 
 - Added a reproducible nine-row source-use-case matrix covering the completed computational THRML

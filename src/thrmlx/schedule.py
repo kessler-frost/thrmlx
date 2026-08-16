@@ -20,18 +20,66 @@ def _validate_boolean_array(name: str, value: mx.array) -> None:
         raise TypeError(f"{name} must have boolean dtype")
 
 
-@dataclass(frozen=True, slots=True)
+def _resolve_schedule_count(
+    upstream_name: str,
+    upstream_value: int | None,
+    mlx_name: str,
+    mlx_value: int | None,
+    default: int,
+) -> int:
+    if upstream_value is not None and mlx_value is not None:
+        raise TypeError(f"{upstream_name} and {mlx_name} cannot both be supplied")
+    value = default if upstream_value is None else upstream_value
+    return value if mlx_value is None else mlx_value
+
+
+@dataclass(frozen=True, slots=True, init=False)
 class SamplingSchedule:
     """Number and spacing of recorded block-Gibbs states."""
 
-    warmup: int = 0
-    samples: int = 1
-    sweeps_per_sample: int = 1
+    warmup: int
+    samples: int
+    sweeps_per_sample: int
 
-    def __post_init__(self) -> None:
-        _validate_count("warmup", self.warmup, 0)
-        _validate_count("samples", self.samples, 1)
-        _validate_count("sweeps_per_sample", self.sweeps_per_sample, 0)
+    def __init__(
+        self,
+        n_warmup: int | None = None,
+        n_samples: int | None = None,
+        steps_per_sample: int | None = None,
+        *,
+        warmup: int | None = None,
+        samples: int | None = None,
+        sweeps_per_sample: int | None = None,
+    ) -> None:
+        resolved_warmup = _resolve_schedule_count("n_warmup", n_warmup, "warmup", warmup, 0)
+        resolved_samples = _resolve_schedule_count("n_samples", n_samples, "samples", samples, 1)
+        resolved_sweeps = _resolve_schedule_count(
+            "steps_per_sample", steps_per_sample, "sweeps_per_sample", sweeps_per_sample, 1
+        )
+        _validate_count("warmup", resolved_warmup, 0)
+        _validate_count("samples", resolved_samples, 1)
+        _validate_count("sweeps_per_sample", resolved_sweeps, 0)
+        object.__setattr__(self, "warmup", resolved_warmup)
+        object.__setattr__(self, "samples", resolved_samples)
+        object.__setattr__(self, "sweeps_per_sample", resolved_sweeps)
+
+    @property
+    def n_warmup(self) -> int:
+        """Return the THRML name for ``warmup``."""
+
+        return self.warmup
+
+    @property
+    def n_samples(self) -> int:
+        """Return the THRML name for ``samples``."""
+
+        return self.samples
+
+    @property
+    def steps_per_sample(self) -> int:
+        """Return the THRML name for ``sweeps_per_sample``."""
+
+        return self.sweeps_per_sample
 
 
 @dataclass(frozen=True, slots=True)

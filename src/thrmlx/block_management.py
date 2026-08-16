@@ -245,12 +245,12 @@ def block_state_to_global(block_state: Sequence[State], spec: BlockSpec) -> list
     ]
 
 
-def get_node_locations(block: Block[AbstractNode], spec: BlockSpec) -> tuple[int, mx.array]:
+def get_node_locations(nodes: Block[AbstractNode], spec: BlockSpec) -> tuple[int, mx.array]:
     """Return the global bucket and contiguous member positions for a block."""
 
-    if not block:
+    if not nodes:
         raise ValueError("an empty block has no node locations")
-    locations = [spec.node_global_location_map.get(node) for node in block]
+    locations = [spec.node_global_location_map.get(node) for node in nodes]
     if any(location is None for location in locations):
         raise ValueError("block contains a node absent from the BlockSpec")
     bucket_indices = {location[0] for location in locations if location is not None}
@@ -263,17 +263,19 @@ def get_node_locations(block: Block[AbstractNode], spec: BlockSpec) -> tuple[int
 
 def from_global_state(
     global_state: Sequence[State],
-    spec: BlockSpec,
-    blocks: Sequence[Block[AbstractNode]],
+    spec_from: BlockSpec,
+    blocks_to_extract: Sequence[Block[AbstractNode]],
 ) -> list[State]:
     """Extract requested block-local states from global packed state."""
 
-    if len(global_state) != len(spec.global_sd_order):
+    if len(global_state) != len(spec_from.global_sd_order):
         raise ValueError("number of global states does not match the BlockSpec")
     extracted: list[State] = []
-    for block in blocks:
-        bucket, positions = get_node_locations(block, spec)
-        extracted.append(_take_state(spec.global_sd_order[bucket], global_state[bucket], positions))
+    for block in blocks_to_extract:
+        bucket, positions = get_node_locations(block, spec_from)
+        extracted.append(
+            _take_state(spec_from.global_sd_order[bucket], global_state[bucket], positions)
+        )
     return extracted
 
 

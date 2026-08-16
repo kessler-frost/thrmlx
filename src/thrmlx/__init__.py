@@ -1,5 +1,6 @@
 """Source-derived THRML interfaces with an MLX backend."""
 
+from thrmlx import models as models
 from thrmlx.block_management import (
     Block,
     BlockSpec,
@@ -46,9 +47,11 @@ from thrmlx.sampling import sample
 from thrmlx.schedule import Clamp, SamplingSchedule
 
 __version__ = "0.1.0"
+THRML_COMPAT_VERSION = "0.1.4"
 
 __all__ = [
     "DEFAULT_NODE_SHAPE_DTYPES",
+    "THRML_COMPAT_VERSION",
     "AbstractConditionalSampler",
     "AbstractFactor",
     "AbstractNode",
@@ -82,6 +85,7 @@ __all__ = [
     "get_node_locations",
     "hinton_init",
     "make_empty_block_state",
+    "models",
     "sample",
     "sample_blocks",
     "sample_single_block",

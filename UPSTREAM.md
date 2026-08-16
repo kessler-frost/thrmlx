@@ -31,6 +31,17 @@ objective is represented in [tests/upstream_parity/manifest.json](tests/upstream
 An objective is only described as compatible after its MLX-translated test is
 green.
 
+### Direct `thrmlx` imports
+
+For this pinned API, the public root exports, `models` exports, and public module paths are
+available with `thrmlx` substituted for `thrml`. This includes the upstream public keyword names
+for schedules, block specifications, and sampler entry points. The direct-import regression suite
+checks those exports and runs a real MLX Gibbs program through the renamed keyword boundary.
+
+This promise applies to THRML's library surface, not to JAX as an array-compatibility layer. Callers
+must replace `jax.numpy` arrays and `jax.random` keys with `mlx.core` arrays and explicit MLX keys;
+uses of `jax.jit`, `jax.vmap`, `jax.grad`, or Equinox PyTrees require an MLX-native rewrite.
+
 The pinned suite's MNIST test depends on approximately 30 MB of upstream
 NumPy fixtures and JAX/Optax training code. Its MLX translation is a
 deterministic compact fixture with the same 28-by-28 binary-image shape,

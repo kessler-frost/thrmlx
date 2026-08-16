@@ -11,6 +11,7 @@ import mlx.core as mx  # ty: ignore[unresolved-import]
 
 from thrmlx.block_management import Block, BlockSpec, State, StateSpec, from_global_state
 from thrmlx.conditional_samplers import BernoulliConditional, SoftmaxConditional
+from thrmlx.factor import WeightedFactor
 from thrmlx.interaction import InteractionGroup
 from thrmlx.models.ebm import EBMFactor
 from thrmlx.pgm import AbstractNode, ArraySpec
@@ -74,7 +75,7 @@ def _split_states(states: Sequence[State], n_spin: int) -> tuple[list[mx.array],
     return spin_states, categorical_states
 
 
-class DiscreteEBMFactor(EBMFactor):
+class DiscreteEBMFactor(EBMFactor, WeightedFactor):
     """Parallel factors ``s_1 ... s_M W[c_1, ..., c_N]`` over discrete nodes."""
 
     def __init__(
@@ -85,9 +86,7 @@ class DiscreteEBMFactor(EBMFactor):
     ) -> None:
         self.spin_node_groups = tuple(spin_node_groups)
         self.categorical_node_groups = tuple(categorical_node_groups)
-        super().__init__(self.spin_node_groups + self.categorical_node_groups)
-        if not isinstance(weights, mx.array):
-            raise TypeError("weights must be an MLX array")
+        WeightedFactor.__init__(self, weights, self.spin_node_groups + self.categorical_node_groups)
         if weights.ndim != 1 + len(self.categorical_node_groups):
             raise RuntimeError(
                 "The shape of the weight tensor must be [b, x_1, ..., x_k], where "
@@ -99,7 +98,6 @@ class DiscreteEBMFactor(EBMFactor):
             raise RuntimeError("A node cannot be both categorical and spin.")
         self.is_spin = {node_type: True for node_type in spin_types}
         self.is_spin.update({node_type: False for node_type in categorical_types})
-        self.weights = weights
 
     def to_interaction_groups(self) -> list[InteractionGroup]:
         interaction_groups: list[InteractionGroup] = []

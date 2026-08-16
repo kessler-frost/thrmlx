@@ -5,12 +5,12 @@ build-backend = "uv_build"
 [project]
 name = "thrmlx"
 version = "0.1.0"
-description = "MLX-native Ising-model sampling for local Apple Silicon"
+description = "MLX backend port of THRML for local Apple Silicon"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
-keywords = ["mlx", "ising", "gibbs-sampling", "energy-based-models", "apple-silicon"]
+keywords = ["mlx", "thrml", "ising", "gibbs-sampling", "energy-based-models", "apple-silicon"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: Apache Software License",
