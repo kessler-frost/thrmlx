@@ -103,8 +103,8 @@ def test_model_rejects_invalid_parameter_shapes(
         Ising(fields, couplings)
 
 
-@pytest.mark.parametrize("beta", [0.0, -1.0, math.nan, math.inf])
-def test_model_requires_finite_positive_beta(beta: float) -> None:
+@pytest.mark.parametrize("beta", [0.0, -1.0, math.nan, math.inf, 10**1000])
+def test_model_requires_finite_positive_beta(beta: float | int) -> None:
     with pytest.raises(ValueError, match="beta"):
         Ising(mx.array([0.0]), mx.array([[0.0]]), beta=beta)
 

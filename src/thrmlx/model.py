@@ -3,6 +3,7 @@
 import math
 from collections.abc import Sequence
 from itertools import combinations
+from sys import float_info
 
 # MLX 0.32 ships its native extension without typing metadata.
 import mlx.core as mx  # ty: ignore[unresolved-import]
@@ -90,7 +91,7 @@ class Ising:
         _validate_coupling_matrix(couplings)
         if isinstance(beta, bool) or not isinstance(beta, (int, float)):
             raise TypeError("beta must be a real number")
-        if not math.isfinite(beta) or beta <= 0:
+        if beta <= 0 or beta > float_info.max or not math.isfinite(beta):
             raise ValueError("beta must be finite and strictly positive")
 
         dtype = mx.result_type(fields.dtype, couplings.dtype)

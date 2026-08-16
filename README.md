@@ -21,7 +21,7 @@ Requires Python 3.10+, uv, Apple Silicon, and macOS 14 or newer.
 ```bash
 git clone https://github.com/kessler-frost/thrmlx.git
 cd thrmlx
-uv sync --all-groups
+uv sync --frozen --all-groups
 uv run python examples/two_spin.py
 ```
 
@@ -118,7 +118,8 @@ uv build
 ```
 
 Linux CPU MLX is a secondary semantic-checking target. Set it up with
-`uv sync --all-groups --extra cpu`; the same `python3 scripts/teardown.py` removes that environment.
+`uv sync --frozen --all-groups --extra cpu`; the same `python3 scripts/teardown.py` removes that
+environment.
 
 Run the bounded local benchmark with:
 
@@ -126,8 +127,8 @@ Run the bounded local benchmark with:
 uv run python benchmarks/dense_sampling.py
 ```
 
-It emits JSON containing the model, block, schedule, MLX/device, elapsed-time, and throughput
-metadata needed to compare runs honestly.
+It emits JSON containing the model, block, schedule, MLX/device, and same-shape cold and warm
+throughput metadata needed to compare runs honestly.
 
 ## Scope and roadmap
 

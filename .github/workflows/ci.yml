@@ -21,9 +21,9 @@ jobs:
           version: "0.11.2"
           enable-cache: true
       - name: Install Python
-        run: uv python install 3.12
+        run: uv python install 3.10
       - name: Sync Linux CPU environment
-        run: uv sync --frozen --all-groups --extra cpu
+        run: uv sync --python 3.10 --frozen --all-groups --extra cpu
       - name: Run tests
         run: uv run pytest -q
       - name: Check formatting
@@ -32,6 +32,10 @@ jobs:
         run: uv run ruff check .
       - name: Type check
         run: uv run ty check src
+      - name: Build distributions
+        run: uv build
+      - name: Smoke-test wheel with Linux CPU MLX
+        run: uv run --isolated --no-project --with "mlx[cpu]>=0.32,<0.33" --with ./dist/thrmlx-0.1.0-py3-none-any.whl python -c "import thrmlx; print(thrmlx.__version__)"
 
   apple-silicon:
     name: Apple Silicon correctness and package
@@ -50,6 +54,12 @@ jobs:
         run: uv sync --frozen --all-groups
       - name: Run tests
         run: uv run pytest -q
+      - name: Check formatting
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run ty check src
       - name: Run example
         run: uv run python examples/two_spin.py
       - name: Build distributions

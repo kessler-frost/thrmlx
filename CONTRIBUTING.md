@@ -4,7 +4,7 @@ Start with the behavioral contract in
 [`docs/superpowers/specs/2026-08-16-thrmlx-v0-design.md`](docs/superpowers/specs/2026-08-16-thrmlx-v0-design.md)
 and the repository rules in [`AGENTS.md`](AGENTS.md).
 
-Set up the project with `uv sync --all-groups`; undo local setup with
+Set up the project with `uv sync --frozen --all-groups`; undo local setup with
 `python3 scripts/teardown.py`.
 Implement behavior test-first and use hand-derived expected values or exact enumeration rather than
 mirroring production formulas in tests.

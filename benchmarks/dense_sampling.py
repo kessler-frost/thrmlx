@@ -35,27 +35,31 @@ def main() -> None:
         samples=SAMPLES,
         sweeps_per_sample=SWEEPS_PER_SAMPLE,
     )
-    warm_trace = sample(mx.random.key(0), model, SamplingSchedule(warmup=1), chains=32)
-    mx.eval(warm_trace)
+    cold_started = time.perf_counter()
+    cold_trace = sample(mx.random.key(0), model, schedule, chains=CHAINS)
+    mx.eval(cold_trace)
+    cold_elapsed_seconds = time.perf_counter() - cold_started
 
-    started = time.perf_counter()
-    trace = sample(mx.random.key(1), model, schedule, chains=CHAINS)
-    mx.eval(trace)
-    elapsed_seconds = time.perf_counter() - started
+    warm_started = time.perf_counter()
+    warm_trace = sample(mx.random.key(1), model, schedule, chains=CHAINS)
+    mx.eval(warm_trace)
+    warm_elapsed_seconds = time.perf_counter() - warm_started
 
     result = {
         "block_sizes": [len(block) for block in model.blocks],
         "chains": CHAINS,
+        "cold_elapsed_seconds": cold_elapsed_seconds,
+        "cold_recorded_samples_per_second": CHAINS * SAMPLES / cold_elapsed_seconds,
         "device": str(mx.default_device()),
-        "elapsed_seconds": elapsed_seconds,
         "mlx_version": version("mlx"),
         "n_spins": N_SPINS,
         "platform": platform.platform(),
         "recorded_samples": CHAINS * SAMPLES,
-        "recorded_samples_per_second": CHAINS * SAMPLES / elapsed_seconds,
         "samples": SAMPLES,
         "sweeps_per_sample": SWEEPS_PER_SAMPLE,
         "warmup": WARMUP,
+        "warm_elapsed_seconds": warm_elapsed_seconds,
+        "warm_recorded_samples_per_second": CHAINS * SAMPLES / warm_elapsed_seconds,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
 

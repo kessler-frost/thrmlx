@@ -71,8 +71,8 @@ def _update_block(
     clamp_values: mx.array,
 ) -> mx.array:
     signed = 2 * state.astype(fields.dtype) - 1
-    local_fields = fields + signed @ couplings
-    probabilities = mx.sigmoid(2 * beta * local_fields[:, block])
+    local_fields = fields[block] + signed @ couplings[:, block]
+    probabilities = mx.sigmoid(2 * beta * local_fields)
     draws = mx.random.bernoulli(probabilities, key=key)
     updated = mx.array(state)
     updated[:, block] = draws
